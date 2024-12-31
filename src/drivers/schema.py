@@ -13,6 +13,8 @@ class DriverCreateModel(BaseModel):
     experience_years: Optional[int] = Field(default=0)
     verified: bool = Field(default=False)
 
+    class Config:
+        orm_mode: True
 
 class DriverResponseModel(DriverCreateModel):
     id: UUID
