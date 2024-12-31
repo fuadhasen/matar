@@ -30,13 +30,16 @@ class User(BaseModel, table=True):
 
 
 class Driver(BaseModel, table=True):
-    user_id: UUID = Field(foreign_key="user.id")
+    # user_id: UUID = Field(foreign_key="user.id")
     vehicle_type: str = Field(max_length=50)
-    vechile_registration_number: str = Field(max_length=50, unique=True)
+    # dont forget migration here!!!
+    vehicle_registration_number: str = Field(max_length=50, unique=True)
     languages_spoken: Optional[str] = Field(max_length=255)
     experience_years: Optional[int] = Field(default=0)
     verified: bool = Field(default=False)
 
+    def __repr__(self):
+        return f"Driver {self}"
 
 class Trip(BaseModel, table=True):
     origin: str = Field(max_length=255)
@@ -49,7 +52,7 @@ class Trip(BaseModel, table=True):
 class Booking(BaseModel, table=True):
     driver_id: UUID = Field(foreign_key="driver.id")
     trip_id: UUID = Field(foreign_key="trip.id")
-    user_id: UUID = Field(foreign_key="user.id")
+    # user_id: UUID = Field(foreign_key="user.id")
     number_of_passengers: int
     total_price: float
     booking_date: datetime = Field(default_factory=datetime.now)
@@ -58,7 +61,7 @@ class Booking(BaseModel, table=True):
 
 class Review(BaseModel, table=True):
     driver_id: UUID = Field(foreign_key="driver.id")
-    user_id: UUID = Field(foreign_key="user.id")
+    # user_id: UUID = Field(foreign_key="user.id")
     rating: int = Field(ge=1, le=5)
     comment: Optional[str]
 

@@ -2,5 +2,7 @@ __pycache__
 .env
 final
 alembic.ini
-migrations
+migrations/env.py 
+migrations/__pycache__ 
+migrations/script.py.mako 
 
