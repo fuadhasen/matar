@@ -65,3 +65,5 @@ class Review(BaseModel, table=True):
     rating: int = Field(ge=1, le=5)
     comment: Optional[str]
 
+    def __repr__(self):
+        return f"Review {self}"
