@@ -23,6 +23,7 @@ class TokenBearer(HTTPBearer):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                 detail="token invalid or expired"
                             )
+
         # token revoking implemented here.
 
         self.verify_token_data(token_data)
@@ -45,7 +46,7 @@ class AccesToken(TokenBearer):
             )
 
 
-class RefreshTokekn(TokenBearer):
+class RefreshToken(TokenBearer):
     """refresh_token validation"""
     def verify_token_data(self, token_data):
         if (token_data and not token_data['refresh']):

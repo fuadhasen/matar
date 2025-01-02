@@ -9,10 +9,11 @@ from .utils import verify_hash, create_access_token
 from datetime import datetime, timedelta
 from src.config import Config
 from fastapi.responses import JSONResponse
-from .dependency import AccesToken, RefreshTokekn, get_current_user
+from .dependency import AccesToken, RefreshToken, get_current_user
 
 EXPIRY_TIME=2
 access = AccesToken()
+refresh = RefreshToken()
 user_service = UserService()
 auth_router = APIRouter()
 
@@ -82,3 +83,27 @@ async def user(
 ):
     user = await get_current_user(session, token_detail)
     return user
+
+
+@auth_router.get('/refresh')
+async def refresh_token(
+    token_detail: dict = Depends(refresh)
+):
+    refresh_token_expiry = token_detail['exp']
+
+    if (datetime.fromtimestamp(refresh_token_expiry) > datetime.now()):
+        access_token = create_access_token(
+            user_data=token_detail['user']
+        )
+
+        return JSONResponse(
+            content={
+                'new_access_token': access_token
+            }
+        )
+
+    return HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail='invalid or expired token'
+    )
+
