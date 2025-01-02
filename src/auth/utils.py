@@ -3,6 +3,7 @@ from passlib.context import CryptContext
 import jwt
 from datetime import timedelta, datetime
 from src.config import Config
+from fastapi import HTTPException, status
 
 
 EXPIRY_TIME=3600
@@ -34,4 +35,17 @@ def create_access_token(user_data: dict, expiry: timedelta=None, refresh: bool=F
         algorithm=Config.ALGORITHM
     )
     return token
+
+
+def decode_token(token: str):
+    """verify clients token"""
+    try:
+        token_data = jwt.decode(
+            jwt=token,
+            key=Config.SECRET_KEY,
+            algorithms=Config.ALGORITHM
+        )
+        return token_data
+    except jwt.PyJWTError:
+        return None
 

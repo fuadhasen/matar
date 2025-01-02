@@ -1,4 +1,4 @@
-"""Routes module for Authentication"""
+"""module for Authentication"""
 from fastapi import APIRouter, Depends
 from .schema import UserCreateModel, UserResponseModel, LoginModel
 from sqlalchemy.ext.asyncio.session import AsyncSession
@@ -9,8 +9,10 @@ from .utils import verify_hash, create_access_token
 from datetime import datetime, timedelta
 from src.config import Config
 from fastapi.responses import JSONResponse
+from .dependency import AccesToken, RefreshTokekn, get_current_user
 
 EXPIRY_TIME=2
+access = AccesToken()
 user_service = UserService()
 auth_router = APIRouter()
 
@@ -45,7 +47,7 @@ async def login(
            access_token = create_access_token(
                user_data={
                    'email': user.email,
-                   'uuid': str(user.id),
+                   'id': str(user.id),
                    'role': user.role
                }
            )
@@ -53,7 +55,7 @@ async def login(
            refresh_token = create_access_token(
                user_data={
                    'email': user.email,
-                   'uuid': str(user.id),
+                   'id': str(user.id),
                    'role': user.role
                },
                expiry=timedelta(days=EXPIRY_TIME),
@@ -73,3 +75,10 @@ async def login(
             )
 
 
+@auth_router.get('/me', response_model=UserResponseModel)
+async def user(
+    session: AsyncSession = Depends(get_session),
+    token_detail: dict = Depends(access)
+):
+    user = await get_current_user(session, token_detail)
+    return user
