@@ -24,15 +24,17 @@ class BaseModel(SQLModel):
 class User(BaseModel, table=True):
     full_name: str = Field(max_length=255)
     email: str = Field(max_length=255, unique=True)
-    hashed_password: str
+    password: str
     phone_number: Optional[str] = Field(max_length=15)
     role: RoleEnum
+
+    def __repr__(self):
+        return f"User: {self}"
 
 
 class Driver(BaseModel, table=True):
     # user_id: UUID = Field(foreign_key="user.id")
     vehicle_type: str = Field(max_length=50)
-    # dont forget migration here!!!
     vehicle_registration_number: str = Field(max_length=50, unique=True)
     languages_spoken: Optional[str] = Field(max_length=255)
     experience_years: Optional[int] = Field(default=0)
