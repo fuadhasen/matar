@@ -9,7 +9,10 @@ from uuid import UUID
 from typing import List
 
 
-driver_router = APIRouter()
+driver_router = APIRouter(
+    prefix='/api'
+)
+
 driver_service = DriverService()
 
 
@@ -30,7 +33,8 @@ async def get_a_driver(driver_id: str, session: AsyncSession = Depends(get_sessi
     return driver
 
 
-@driver_router.post('/driver', response_model=DriverResponseModel)
+# create driver
+@driver_router.post('/drivers/register', response_model=DriverResponseModel)
 async def create_driver(
     driver_data: DriverCreateModel,
     session: AsyncSession = Depends(get_session)
@@ -39,17 +43,29 @@ async def create_driver(
     return driver
 
 
-@driver_router.patch('/driver/{driver_id}')
-async def update_driver(
-    driver_id: str,
-    driver_data: DriverCreateModel,
-    session: AsyncSession = Depends(get_session)
-):
-    driver = await driver_service.update_driver(driver_id, driver_data, session)
+# wait this from admin.
+@driver_router.get('/driver/{driver_id}/verify', response_model=DriverResponseModel)
+async def get_a_driver(driver_id: str, session: AsyncSession = Depends(get_session)):
+    driver = await driver_service.get_a_driver(driver_id, session)
+    if not driver:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="driver Not found"
+        )
     return driver
 
 
-@driver_router.delete('/driver/{driver_id}')
-async def delete_driver(driver_id: str, session: AsyncSession = Depends(get_session)):
-    driver = await driver_service.delete_driver(driver_id, session)
-    return driver
+# @driver_router.patch('/driver/{driver_id}')
+# async def update_driver(
+#     driver_id: str,
+#     driver_data: DriverCreateModel,
+#     session: AsyncSession = Depends(get_session)
+# ):
+#     driver = await driver_service.update_driver(driver_id, driver_data, session)
+#     return driver
+
+
+# @driver_router.delete('/driver/{driver_id}')
+# async def delete_driver(driver_id: str, session: AsyncSession = Depends(get_session)):
+#     driver = await driver_service.delete_driver(driver_id, session)
+#     return driver

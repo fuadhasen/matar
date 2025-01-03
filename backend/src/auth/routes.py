@@ -15,10 +15,12 @@ EXPIRY_TIME=2
 access = AccesToken()
 refresh = RefreshToken()
 user_service = UserService()
-auth_router = APIRouter()
+auth_router = APIRouter(
+    prefix='/api'
+)
 
 
-@auth_router.post('/sign-up', response_model=UserResponseModel)
+@auth_router.post('/auth/register', response_model=UserResponseModel)
 async def create_user(
     user_data: UserCreateModel,
     session:  AsyncSession = Depends(get_session)
@@ -35,7 +37,7 @@ async def create_user(
     return user
 
 
-@auth_router.post('/login')
+@auth_router.post('/auth/login')
 async def login(
     user_credential: LoginModel,
     session: AsyncSession = Depends(get_session)
@@ -76,7 +78,7 @@ async def login(
             )
 
 
-@auth_router.get('/me', response_model=UserResponseModel)
+@auth_router.get('/users/me', response_model=UserResponseModel)
 async def user(
     session: AsyncSession = Depends(get_session),
     token_detail: dict = Depends(access)
@@ -85,25 +87,25 @@ async def user(
     return user
 
 
-@auth_router.get('/refresh')
-async def refresh_token(
-    token_detail: dict = Depends(refresh)
-):
-    refresh_token_expiry = token_detail['exp']
+# @auth_router.get('/refresh')
+# async def refresh_token(
+#     token_detail: dict = Depends(refresh)
+# ):
+#     refresh_token_expiry = token_detail['exp']
 
-    if (datetime.fromtimestamp(refresh_token_expiry) > datetime.now()):
-        access_token = create_access_token(
-            user_data=token_detail['user']
-        )
+#     if (datetime.fromtimestamp(refresh_token_expiry) > datetime.now()):
+#         access_token = create_access_token(
+#             user_data=token_detail['user']
+#         )
 
-        return JSONResponse(
-            content={
-                'new_access_token': access_token
-            }
-        )
+#         return JSONResponse(
+#             content={
+#                 'new_access_token': access_token
+#             }
+#         )
 
-    return HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail='invalid or expired token'
-    )
+#     return HTTPException(
+#         status_code=status.HTTP_401_UNAUTHORIZED,
+#         detail='invalid or expired token'
+#     )
 

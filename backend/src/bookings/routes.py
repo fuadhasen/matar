@@ -9,7 +9,10 @@ from uuid import UUID
 from typing import List
 
 
-booking_router = APIRouter()
+booking_router = APIRouter(
+    prefix='/api'
+)
+
 booking_service = BookingService()
 
 
@@ -19,7 +22,7 @@ async def get_booking(session: AsyncSession = Depends(get_session)):
     return bookings
 
 
-@booking_router.get('/booking/{booking_id}', response_model=BookingResponseModel)
+@booking_router.get('/bookings/{booking_id}', response_model=BookingResponseModel)
 async def get_a_booking(booking_id: str, session: AsyncSession = Depends(get_session)):
     booking = await booking_service.get_a_booking(booking_id, session)
     if not booking:
@@ -29,7 +32,7 @@ async def get_a_booking(booking_id: str, session: AsyncSession = Depends(get_ses
         )
     return booking
 
-
+# create bookings
 @booking_router.post('/booking', response_model=BookingResponseModel)
 async def create_booking(
     booking_data: BookingCreateModel,
@@ -39,17 +42,17 @@ async def create_booking(
     return booking
 
 
-@booking_router.patch('/booking/{booking_id}')
-async def update_booking(
-    booking_id: str,
-    booking_data: BookingCreateModel,
-    session: AsyncSession = Depends(get_session)
-):
-    booking = await booking_service.update_booking(booking_id, booking_data, session)
-    return booking
+# @booking_router.patch('/booking/{booking_id}')
+# async def update_booking(
+#     booking_id: str,
+#     booking_data: BookingCreateModel,
+#     session: AsyncSession = Depends(get_session)
+# ):
+#     booking = await booking_service.update_booking(booking_id, booking_data, session)
+#     return booking
 
-
-@booking_router.delete('/booking/{booking_id}')
+# delete booking (it needs role based access)
+@booking_router.delete('/bookings/{booking_id}')
 async def delete_booking(booking_id: str, session: AsyncSession = Depends(get_session)):
     booking = await booking_service.delete_booking(booking_id, session)
     return booking
