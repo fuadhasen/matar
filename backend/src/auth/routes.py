@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from src.config import Config
 from fastapi.responses import JSONResponse
 from .dependency import AccesToken, RefreshToken, get_current_user
+from typing import List
 
 EXPIRY_TIME=2
 access = AccesToken()
@@ -87,25 +88,15 @@ async def user(
     return user
 
 
-# @auth_router.get('/refresh')
-# async def refresh_token(
-#     token_detail: dict = Depends(refresh)
-# ):
-#     refresh_token_expiry = token_detail['exp']
+# should be access based only for admins.???
+@auth_router.get('/admin/users', response_model=List[UserResponseModel])
+async def get_users(session: AsyncSession = Depends(get_session)):
+    users = await user_service.get_users(session)
+    return users
 
-#     if (datetime.fromtimestamp(refresh_token_expiry) > datetime.now()):
-#         access_token = create_access_token(
-#             user_data=token_detail['user']
-#         )
 
-#         return JSONResponse(
-#             content={
-#                 'new_access_token': access_token
-#             }
-#         )
-
-#     return HTTPException(
-#         status_code=status.HTTP_401_UNAUTHORIZED,
-#         detail='invalid or expired token'
-#     )
+@auth_router.get('/admin/users/{user_id}', response_model=List[UserResponseModel])
+async def delete_users(user_id: str, session: AsyncSession = Depends(get_session)):
+    users = await user_service.delete_user(user_id, session)
+    return users
 

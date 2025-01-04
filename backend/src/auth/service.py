@@ -32,9 +32,13 @@ class UserService:
         await session.commit()
         return new_user
 
-
-    async def update_user(self):
-        pass
-
-    async def delete_user(self):
-        pass
+    async def delete_user(self, user_id: str, session: AsyncSession):
+        statement = select(User).where(User.id == user_id)
+        res = await session.exec(statement).first()
+        if not res:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail="User Not found"
+                            )
+        await session.delete(res)
+        await session.commit()
+        return {}

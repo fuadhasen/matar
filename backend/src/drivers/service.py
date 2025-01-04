@@ -28,7 +28,7 @@ class DriverService:
         res = await session.exec(statement)
         return res.first()
 
-    async def create_driver(self, driver_data: DriverCreateModel, session: AsyncSession):
+    async def create_driver(self, user_id, driver_data: DriverCreateModel, session: AsyncSession):
         driver_registration_num = driver_data.vehicle_registration_number
         driver = await self.find_by_registration_num(driver_registration_num, session)
         if driver:
@@ -39,6 +39,7 @@ class DriverService:
         new_data = driver_data.model_dump()
 
         new_driver = Driver(**new_data)
+        new_driver.user_id = user_id
         session.add(new_driver)
         await session.commit()
         return new_driver
