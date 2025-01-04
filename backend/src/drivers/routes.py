@@ -4,37 +4,22 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import HTTPException
 from sqlmodel.ext.asyncio.session import AsyncSession
 from .service import DriverService
-from .schema import DriverCreateModel, DriverResponseModel
+from .schema import DriverCreateModel, DriverResponseModel, VerifyModel
 from src.db.main import get_session
 from uuid import UUID
 from typing import List
 from src.auth.dependency import AccessToken
-from src.auth.routes import user_service
+from src.auth.service import UserService
+from src.auth.dependency import RoleChecker
 
 
+user_service = UserService()
 driver_router = APIRouter(
     prefix='/api'
 )
 
 driver_service = DriverService()
 access = AccessToken()
-
-
-@driver_router.get('/drivers', response_model=List[DriverResponseModel])
-async def get_driver(session: AsyncSession = Depends(get_session)):
-    drivers = await driver_service.get_drivers(session)
-    return drivers
-
-
-@driver_router.get('/drivers/{driver_id}', response_model=DriverResponseModel)
-async def get_a_driver(driver_id: str, session: AsyncSession = Depends(get_session)):
-    driver = await driver_service.get_a_driver(driver_id, session)
-    if not driver:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="driver Not found"
-        )
-    return driver
 
 
 @driver_router.post('/drivers/register', response_model=DriverResponseModel)
@@ -53,12 +38,12 @@ async def create_driver(
     return driver
 
 
-# role based access only for admins.
 @driver_router.get('/drivers/{driver_id}/verify', response_model=DriverResponseModel)
 async def check_status(
     driver_id: str,
     session: AsyncSession = Depends(get_session),
-    token_detail: dict = Depends(access)
+    token_detail: dict = Depends(access),
+    role: bool = Depends(RoleChecker(['staffs']))
 ):
     driver = await driver_service.get_a_driver(driver_id, session)
     if not driver:
@@ -67,33 +52,22 @@ async def check_status(
             detail="driver Not found"
         )
 
-    return JSONResponse(
-        content={
-           "verified" : driver.verified
-        }
-    )
+    return driver
 
 
-# role based access only for admins.
-@driver_router.patch('/drivers/{driver_id}/verify', response_model=DriverResponseModel)
-async def verify_status(
+@driver_router.patch('/drivers/{driver_id}/verify')
+async def verify_driver(
     driver_id: str,
+    driver_data: VerifyModel,
     session: AsyncSession = Depends(get_session),
-    token_detail: dict = Depends(access)
+    token_detail: dict = Depends(access),
+    role: bool = Depends(RoleChecker(['staff']))
 ):
-    driver = await driver_service.get_a_driver(driver_id, session)
-    if not driver:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="driver Not found"
-        )
+    driver = await driver_service.update_driver(driver_id, driver_data, session)
 
-    driver.verified = True
-    await session.commit()
     return JSONResponse(
         content={
-            "message": "Driver verified successfully",
-            "verified" : driver.verified
+            'verified': driver.verified
         }
     )
 

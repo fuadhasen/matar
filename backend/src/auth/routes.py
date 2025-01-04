@@ -1,6 +1,6 @@
 """module for Authentication"""
 from fastapi import APIRouter, Depends
-from .schema import UserCreateModel, UserResponseModel, LoginModel
+from .schema import UserCreateModel, UserResponseModel, LoginModel, DisableModel
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from src.db.main import get_session
 from .service import UserService
@@ -9,8 +9,14 @@ from .utils import verify_hash, create_access_token
 from datetime import datetime, timedelta
 from src.config import Config
 from fastapi.responses import JSONResponse
-from .dependency import AccessToken, RefreshToken, get_current_user
+from .dependency import (
+    AccessToken, RefreshToken,
+    get_current_user, RoleChecker
+)
+from src.drivers.routes import driver_service
+from src.drivers.schema import DriverCreateModel
 from typing import List
+
 
 EXPIRY_TIME=2
 access = AccessToken()
@@ -81,22 +87,33 @@ async def login(
 
 @auth_router.get('/users/me', response_model=UserResponseModel)
 async def user(
-    session: AsyncSession = Depends(get_session),
+    user: dict = Depends(get_current_user),
     token_detail: dict = Depends(access)
 ):
-    user = await get_current_user(session, token_detail)
     return user
 
 
-# should be access based only for admins.???
 @auth_router.get('/admin/users', response_model=List[UserResponseModel])
-async def get_users(session: AsyncSession = Depends(get_session)):
+async def get_users(
+    session: AsyncSession = Depends(get_session),
+    token_detail: dict = Depends(access),
+    role: bool = Depends(RoleChecker(['admin', 'staff']))
+):
     users = await user_service.get_users(session)
     return users
 
+# instead of deleting just disable it.
+@auth_router.patch('/admin/users/{user_id}')
+async def disable_user(
+    user_id: str,
+    user_data: DisableModel,
+    session: AsyncSession = Depends(get_session),
+    token_detail: dict = Depends(access),
+    role: bool = Depends(RoleChecker(['admin', 'staff']))
+):
+    # users.is_active = False but its defualt was true after its created
+    users = await user_service.disable_user(user_id, user_data, session)
+    return JSONResponse(content={"message": f"user with this{user_id} id is disabled"})
 
-@auth_router.get('/admin/users/{user_id}', response_model=List[UserResponseModel])
-async def delete_users(user_id: str, session: AsyncSession = Depends(get_session)):
-    users = await user_service.delete_user(user_id, session)
-    return users
+
 

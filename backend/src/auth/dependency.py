@@ -1,10 +1,12 @@
 """Token verification module"""
 from fastapi.security import HTTPBearer
-from fastapi import Request
+from fastapi import Request, Depends
 from .utils import decode_token
 from fastapi import HTTPException, status
 from sqlmodel.ext.asyncio.session import AsyncSession
 from .service import UserService
+from typing import List
+from src.db.main import get_session
 
 user_service = UserService()
 
@@ -57,9 +59,22 @@ class RefreshToken(TokenBearer):
 
 
 async def get_current_user(
-    session: AsyncSession,
-    token_detail: dict
+    session: AsyncSession = Depends(get_session),
+    token_detail: dict = Depends(AccessToken())
 ):
     email = token_detail['user']['email']
     user = await user_service.get_auser_byemail(email, session)
     return user
+
+
+class RoleChecker:
+    """Role Based Access Control class"""
+    def __init__(self, allowed_roles: List[str]):
+        self.allowed_roles = allowed_roles
+
+    def __call__(self, user: dict = Depends(get_current_user)):
+        if user.role not in self.allowed_roles:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                                detail="Not Allowed, FORBIDDEN")
+        return True
+

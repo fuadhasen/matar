@@ -6,6 +6,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import desc
 from .schema import UserCreateModel
 from .utils import generate_hash
+from .schema import DisableModel
 
 
 class UserService:
@@ -26,19 +27,23 @@ class UserService:
         user_dict = user_data.model_dump()
         new_user = User(**user_dict)
 
+        new_user.is_active = user_data.is_active == 'true'
         hashed_pwd = generate_hash(new_user.password)
         new_user.password = hashed_pwd
         session.add(new_user)
         await session.commit()
         return new_user
 
-    async def delete_user(self, user_id: str, session: AsyncSession):
+    async def disable_user(self, user_id: str, user_data:DisableModel, session: AsyncSession):
         statement = select(User).where(User.id == user_id)
-        res = await session.exec(statement).first()
-        if not res:
+        user = await session.exec(statement).first()
+        if not user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                 detail="User Not found"
                             )
-        await session.delete(res)
+
+        user.is_active = user_data.is_active == 'true'
+
         await session.commit()
-        return {}
+        await session.refresh(user)
+        return user

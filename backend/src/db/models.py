@@ -4,7 +4,7 @@ from sqlmodel import SQLModel, Field
 from typing import Optional
 from datetime import datetime
 from enum import Enum
-from sqlalchemy import Column, ForeignKey
+from sqlalchemy import Column, ForeignKey, text
 from uuid import UUID, uuid4
 import uuid
 from uuid import UUID
@@ -14,6 +14,8 @@ import sqlalchemy.dialects.postgresql as pg
 class RoleEnum(str, Enum):
     tourist = "tourist"
     driver = "driver"
+    admin = "admin"
+    staff = "staff"
 
 
 class BaseModel(SQLModel):
@@ -27,6 +29,11 @@ class User(BaseModel, table=True):
     password: str
     phone_number: Optional[str] = Field(max_length=15)
     role: RoleEnum
+    is_active: bool = Field(
+        sa_column=Column(
+            pg.BOOLEAN,
+            server_default=text("true")
+    ))
 
     def __repr__(self):
         return f"User: {self}"

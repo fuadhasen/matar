@@ -36,6 +36,7 @@ class DriverService:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="driver with this registration number already exist"
             )
+
         new_data = driver_data.model_dump()
 
         new_driver = Driver(**new_data)

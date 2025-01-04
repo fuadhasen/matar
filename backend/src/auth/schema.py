@@ -13,6 +13,7 @@ class UserCreateModel(BaseModel):
     password: Optional[str]
     phone_number: str
     role: RoleEnum
+    is_active: str = Field(default=True)
 
 
 class UserResponseModel(BaseModel):
@@ -22,8 +23,13 @@ class UserResponseModel(BaseModel):
     email: str
     phone_number: str
     role: RoleEnum
+    is_active: bool
 
 
 class LoginModel(BaseModel):
     email: str
     password: str
+
+
+class DisableModel(BaseModel):
+    is_active: str

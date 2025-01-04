@@ -19,3 +19,6 @@ class DriverCreateModel(BaseModel):
 class DriverResponseModel(DriverCreateModel):
     id: UUID
     created_at: datetime
+
+class VerifyModel(BaseModel):
+    is_verified: bool
