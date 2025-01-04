@@ -36,7 +36,7 @@ class TokenBearer(HTTPBearer):
         raise NotImplementedError('Please implement this in child classes')
 
 
-class AccesToken(TokenBearer):
+class AccessToken(TokenBearer):
     """access_token validation"""
     def verify_token_data(self, token_data):
         if (token_data and token_data['refresh']):

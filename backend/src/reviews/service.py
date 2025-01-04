@@ -10,7 +10,6 @@ from uuid import UUID
 from src.drivers.routes import driver_service
 
 
-
 class ReviewService:
     """class for Review services"""
     async def get_reviews(self, session: AsyncSession):
@@ -25,7 +24,13 @@ class ReviewService:
         result = res.first()
         return result if result is not None else None
 
-    async def create_review(self, review_data: ReviewCreateModel, session: AsyncSession):
+    async def get_a_review_by_driverid(self, driver_id: str, session: AsyncSession):
+        statement = select(Review).where(Review.driver_id == driver_id)
+        res = await session.exec(statement)
+        result = res.first()
+        return result if result is not None else None
+
+    async def create_review(self, user_id, review_data: ReviewCreateModel, session: AsyncSession):
         driver_id = review_data.driver_id
         driver = await driver_service.get_a_driver(driver_id, session)
         if not driver:
@@ -35,7 +40,7 @@ class ReviewService:
         new_data = review_data.model_dump()
 
         new_review = Review(**new_data)
-        print(new_review)
+        new_review.user_id = user_id
         new_review.driver_id = UUID(new_data['driver_id'])
         session.add(new_review)
         await session.commit()

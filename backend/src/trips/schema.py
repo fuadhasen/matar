@@ -20,3 +20,7 @@ class TripResponseModel(TripCreateModel):
     id: UUID
     created_at: datetime
     trip_date: datetime
+
+
+class StatusUpdateModel(BaseModel):
+    status: str

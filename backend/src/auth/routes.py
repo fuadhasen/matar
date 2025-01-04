@@ -9,11 +9,11 @@ from .utils import verify_hash, create_access_token
 from datetime import datetime, timedelta
 from src.config import Config
 from fastapi.responses import JSONResponse
-from .dependency import AccesToken, RefreshToken, get_current_user
+from .dependency import AccessToken, RefreshToken, get_current_user
 from typing import List
 
 EXPIRY_TIME=2
-access = AccesToken()
+access = AccessToken()
 refresh = RefreshToken()
 user_service = UserService()
 auth_router = APIRouter(

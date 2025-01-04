@@ -8,7 +8,7 @@ from .schema import DriverCreateModel, DriverResponseModel
 from src.db.main import get_session
 from uuid import UUID
 from typing import List
-from src.auth.dependency import AccesToken
+from src.auth.dependency import AccessToken
 from src.auth.routes import user_service
 
 
@@ -17,7 +17,7 @@ driver_router = APIRouter(
 )
 
 driver_service = DriverService()
-access = AccesToken()
+access = AccessToken()
 
 
 @driver_router.get('/drivers', response_model=List[DriverResponseModel])
@@ -43,7 +43,7 @@ async def create_driver(
     session: AsyncSession = Depends(get_session),
     token_detail: dict = Depends(access)
 ):
-    user_email = token_detail['user']['email']
+    user_email = token_detail['user']['user_email']
     user = await user_service.get_auser_byemail(user_email, session)
     if user.role != 'driver':
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,

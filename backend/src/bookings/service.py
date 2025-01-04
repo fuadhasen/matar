@@ -26,7 +26,7 @@ class BookingService:
         result = res.first()
         return result if result is not None else None
 
-    async def create_booking(self, booking_data: BookingCreateModel, session: AsyncSession):
+    async def create_booking(self, user_id, booking_data: BookingCreateModel, session: AsyncSession):
         trip_id = booking_data.trip_id
         if (trip_service.get_a_trip(trip_id, session) is None):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
@@ -47,6 +47,7 @@ class BookingService:
         new_booking.driver_id = UUID(new_data['driver_id'])
         new_booking.trip_id = UUID(new_data['trip_id'])
 
+        new_booking.user_id = user_id
         session.add(new_booking)
         await session.commit()
         return new_booking
@@ -97,4 +98,3 @@ class BookingService:
         await session.delete(booking)
         await session.commit()
         return {}
-
