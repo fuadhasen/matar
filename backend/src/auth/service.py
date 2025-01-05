@@ -36,7 +36,9 @@ class UserService:
 
     async def disable_user(self, user_id: str, user_data:DisableModel, session: AsyncSession):
         statement = select(User).where(User.id == user_id)
-        user = await session.exec(statement).first()
+        res = await session.exec(statement)
+        user = res.first()
+
         if not user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                 detail="User Not found"

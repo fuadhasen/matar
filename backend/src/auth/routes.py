@@ -21,6 +21,7 @@ from typing import List
 EXPIRY_TIME=2
 access = AccessToken()
 refresh = RefreshToken()
+refresh = RefreshToken()
 user_service = UserService()
 auth_router = APIRouter(
     prefix='/api'
@@ -78,11 +79,25 @@ async def login(
                    'access_token': access_token,
                    'refresh_token': refresh_token,
                    'user': {
-                        'user_id': str(user.id),
-                        'user_email': user.email
+                        'id': str(user.id),
+                        'email': user.email
                     }
                 }
             )
+
+
+@auth_router.get('/refresh_token')
+async def refresh(
+    token_detail: dict = Depends(refresh)
+):
+    # here i have to check refresh token is expired or not.
+    expiry = token_detail['exp']
+    if datetime.fromtimestamp(expiry) > datetime.now():
+        user_data = token_detail['user']
+        access_token = create_access_token(user_data)
+        return access_token
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Invalid or expired access token")
 
 
 @auth_router.get('/users/me', response_model=UserResponseModel)
@@ -111,9 +126,6 @@ async def disable_user(
     token_detail: dict = Depends(access),
     role: bool = Depends(RoleChecker(['admin', 'staff']))
 ):
-    # users.is_active = False but its defualt was true after its created
     users = await user_service.disable_user(user_id, user_data, session)
-    return JSONResponse(content={"message": f"user with this{user_id} id is disabled"})
-
-
+    return JSONResponse(content={"message": f"user with this {user_id} id is disabled"})
 

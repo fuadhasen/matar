@@ -29,11 +29,7 @@ class User(BaseModel, table=True):
     password: str
     phone_number: Optional[str] = Field(max_length=15)
     role: RoleEnum
-    is_active: bool = Field(
-        sa_column=Column(
-            pg.BOOLEAN,
-            server_default=text("true")
-    ))
+    is_active: bool = Field(default=True)
 
     def __repr__(self):
         return f"User: {self}"

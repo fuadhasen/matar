@@ -75,6 +75,6 @@ class RoleChecker:
     def __call__(self, user: dict = Depends(get_current_user)):
         if user.role not in self.allowed_roles:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-                                detail="Not Allowed, FORBIDDEN")
+                                detail="Not Allowed.")
         return True
 

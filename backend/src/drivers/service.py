@@ -7,6 +7,7 @@ from src.db.models import Driver
 from fastapi.exceptions import HTTPException
 from .schema import DriverCreateModel
 from uuid import UUID
+from src.db.models import User
 
 
 class DriverService:
@@ -23,24 +24,21 @@ class DriverService:
         result = res.first()
         return result if result is not None else None
 
-    async def find_by_registration_num(self, driver_registration_no: str, session: AsyncSession):
-        statement = select(Driver).where(Driver.vehicle_registration_number == driver_registration_no)
-        res = await session.exec(statement)
-        return res.first()
-
     async def create_driver(self, user_id, driver_data: DriverCreateModel, session: AsyncSession):
-        driver_registration_num = driver_data.vehicle_registration_number
-        driver = await self.find_by_registration_num(driver_registration_num, session)
+        statement = select(Driver).where(Driver.user_id == user_id)
+        res = await session.exec(statement)
+        driver = res.first()
         if driver:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="driver with this registration number already exist"
+                detail="driver with this user already exist"
             )
 
         new_data = driver_data.model_dump()
 
         new_driver = Driver(**new_data)
         new_driver.user_id = user_id
+        new_driver.verified = driver_data.verified == 'true'
         session.add(new_driver)
         await session.commit()
         return new_driver
@@ -53,9 +51,8 @@ class DriverService:
                 detail="Not found"
             )
 
-        new_data = driver_data.model_dump()
-        for k, v in new_data.items():
-            setattr(driver, k, v)
+        driver.verified = driver_data.verified
+        await session.commit()
         return driver
 
     async def delete_driver(self, driver_id: str, session: AsyncSession):

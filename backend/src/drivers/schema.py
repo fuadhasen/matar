@@ -11,6 +11,7 @@ class DriverCreateModel(BaseModel):
     vehicle_registration_number: str = Field(max_length=50, unique=True)
     languages_spoken: Optional[str] = Field(max_length=255)
     experience_years: Optional[int] = Field(default=0)
+
     verified: bool = Field(default=False)
 
     class Config:
@@ -21,4 +22,4 @@ class DriverResponseModel(DriverCreateModel):
     created_at: datetime
 
 class VerifyModel(BaseModel):
-    is_verified: bool
+    verified: bool

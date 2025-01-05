@@ -21,20 +21,26 @@ driver_router = APIRouter(
 driver_service = DriverService()
 access = AccessToken()
 
+# this endpoint is for testing purpose not needed 
+# becouse driver status can be seen only by staff
+@driver_router.get('/drivers', response_model=List[DriverResponseModel])
+async def get_drivers(
+    session: AsyncSession = Depends(get_session),
+    token_detail: dict = Depends(access)
+):
+    drivers = await driver_service.get_drivers(session)
+    return drivers
+
 
 @driver_router.post('/drivers/register', response_model=DriverResponseModel)
 async def create_driver(
     driver_data: DriverCreateModel,
     session: AsyncSession = Depends(get_session),
-    token_detail: dict = Depends(access)
+    token_detail: dict = Depends(access),
+    role: bool = Depends(RoleChecker(['driver']))
 ):
-    user_email = token_detail['user']['user_email']
-    user = await user_service.get_auser_byemail(user_email, session)
-    if user.role != 'driver':
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="user with driver role only can register here"
-                        )
-    driver = await driver_service.create_driver(user.id, driver_data, session)
+    user_id = token_detail['user']['id']
+    driver = await driver_service.create_driver(user_id, driver_data, session)
     return driver
 
 
@@ -43,7 +49,7 @@ async def check_status(
     driver_id: str,
     session: AsyncSession = Depends(get_session),
     token_detail: dict = Depends(access),
-    role: bool = Depends(RoleChecker(['staffs']))
+    role: bool = Depends(RoleChecker(['staff']))
 ):
     driver = await driver_service.get_a_driver(driver_id, session)
     if not driver:
