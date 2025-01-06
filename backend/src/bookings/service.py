@@ -87,12 +87,21 @@ class BookingService:
         await session.refresh(booking)
         return booking
 
-    async def delete_booking(self, booking_id: str, session: AsyncSession):
+    async def delete_booking(self, user_id,  booking_id: str, session: AsyncSession):
+        statement = select(Booking).where(Booking.user_id == user_id)
+        res = await session.exec(statement)
+        bking = res.first()
+        if not bking:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Not allowed to delete others booking"
+            )
+
         booking = await self.get_a_booking(booking_id, session)
         if not booking:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Not found"
+                detail="Booking Not found"
             )
 
         await session.delete(booking)

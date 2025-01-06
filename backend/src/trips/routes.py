@@ -7,10 +7,11 @@ from .schema import TripCreateModel, TripResponseModel, StatusUpdateModel
 from src.db.main import get_session
 from uuid import UUID
 from typing import List
-from src.auth.dependency import AccessToken
+from src.auth.dependency import AccessToken, RoleChecker
+from fastapi.responses import JSONResponse
+
 
 access = AccessToken()
-
 trip_router = APIRouter(
     prefix='/api'
 )
@@ -18,7 +19,6 @@ trip_router = APIRouter(
 trip_service = TripService()
 
 
-# dont forget to remember role based access (who can access this endpoints)
 @trip_router.get('/trips', response_model=List[TripResponseModel])
 async def get_trips(
     session: AsyncSession = Depends(get_session),
@@ -43,24 +43,32 @@ async def get_a_trip(
 
     return trip
 
-
 @trip_router.post('/trips', response_model=TripResponseModel)
 async def create_trip(
     trip_data: TripCreateModel,
     session: AsyncSession = Depends(get_session),
-    token_detail: dict = Depends(access)
+    token_detail: dict = Depends(access),
+    role: bool = Depends(RoleChecker(['driver']))
+
 ):
-    trip = await trip_service.create_trip(trip_data, session)
+    user_id = token_detail['user']['id']
+    trip = await trip_service.create_trip(user_id, trip_data, session)
     return trip
 
-# request schema should be corrected
+
 @trip_router.patch('/trip/{trip_id}/status')
 async def update_trip(
     trip_id: str,
     trip_data: StatusUpdateModel,
     session: AsyncSession = Depends(get_session),
-    token_detail: dict = Depends(access)
+    token_detail: dict = Depends(access),
+    role: bool = Depends(RoleChecker(['driver']))
 
 ):
     trip = await trip_service.update_trip(trip_id, trip_data, session)
-    return trip
+    return JSONResponse(
+        content={
+            "message": "trip status updated",
+            "status": trip.status
+        }
+    )

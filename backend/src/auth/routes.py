@@ -90,7 +90,6 @@ async def login(
 async def refresh(
     token_detail: dict = Depends(refresh)
 ):
-    # here i have to check refresh token is expired or not.
     expiry = token_detail['exp']
     if datetime.fromtimestamp(expiry) > datetime.now():
         user_data = token_detail['user']
@@ -117,7 +116,7 @@ async def get_users(
     users = await user_service.get_users(session)
     return users
 
-# instead of deleting just disable it.
+
 @auth_router.patch('/admin/users/{user_id}')
 async def disable_user(
     user_id: str,

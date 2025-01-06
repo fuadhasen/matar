@@ -18,3 +18,4 @@ class ReviewResponseModel(ReviewCreateModel):
     id: UUID
     created_at: datetime
     driver_id: UUID
+    user_id: UUID

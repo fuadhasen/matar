@@ -39,8 +39,8 @@ class Driver(BaseModel, table=True):
     user_id: UUID = Field(
         sa_column=Column(
             pg.UUID,
-            ForeignKey('user.id'),
-            nullable=False,
+            ForeignKey('user.id', ondelete='CASCADE'),
+            nullable=False
         )
     )
     vehicle_type: str = Field(max_length=50)
@@ -55,6 +55,13 @@ class Driver(BaseModel, table=True):
 
 class Trip(BaseModel, table=True):
     origin: str = Field(max_length=255)
+    driver_id: UUID = Field(
+        sa_column=Column(
+            pg.UUID,
+            ForeignKey('driver.id', ondelete='CASCADE'),
+            nullable=False,
+        )
+    )
     destination: str = Field(max_length=255)
     trip_date: datetime
     price: float
@@ -62,12 +69,12 @@ class Trip(BaseModel, table=True):
 
 
 class Booking(BaseModel, table=True):
-    driver_id: UUID = Field(foreign_key='driver.id')
-    trip_id: UUID = Field(foreign_key="trip.id")
+    driver_id: UUID = Field(foreign_key='driver.id', ondelete='CASCADE')
+    trip_id: UUID = Field(foreign_key="trip.id", ondelete='CASCADE')
     user_id: UUID = Field(
         sa_column=Column(
             pg.UUID,
-            ForeignKey('user.id'),
+            ForeignKey('user.id', ondelete='CASCADE'),
             nullable=False,
         )
     )
@@ -78,11 +85,11 @@ class Booking(BaseModel, table=True):
 
 
 class Review(BaseModel, table=True):
-    driver_id: UUID = Field(foreign_key="driver.id")
+    driver_id: UUID = Field(foreign_key="driver.id", ondelete='CASCADE')
     user_id: UUID = Field(
         sa_column=Column(
             pg.UUID,
-            ForeignKey('user.id'),
+            ForeignKey('user.id', ondelete='CASCADE'),
             nullable=False,
         )
     )
@@ -91,3 +98,4 @@ class Review(BaseModel, table=True):
 
     def __repr__(self):
         return f"Review {self}"
+

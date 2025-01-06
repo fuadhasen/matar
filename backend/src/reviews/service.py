@@ -27,7 +27,7 @@ class ReviewService:
     async def get_a_review_by_driverid(self, driver_id: str, session: AsyncSession):
         statement = select(Review).where(Review.driver_id == driver_id)
         res = await session.exec(statement)
-        result = res.first()
+        result = res.all()
         return result if result is not None else None
 
     async def create_review(self, user_id, review_data: ReviewCreateModel, session: AsyncSession):
@@ -37,6 +37,15 @@ class ReviewService:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                 detail="driver not found"
                             )
+
+        statement = select(Review).where(Review.user_id == user_id and Review.driver_id == driver.id)
+        res = await session.exec(statement)
+        review = res.first()
+        if review:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail='Cant Review a driver more than one'
+            )
         new_data = review_data.model_dump()
 
         new_review = Review(**new_data)

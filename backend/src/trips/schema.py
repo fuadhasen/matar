@@ -24,3 +24,5 @@ class TripResponseModel(TripCreateModel):
 
 class StatusUpdateModel(BaseModel):
     status: str
+
+

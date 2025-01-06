@@ -7,7 +7,7 @@ from .schema import BookingCreateModel, BookingResponseModel
 from src.db.main import get_session
 from uuid import UUID
 from typing import List
-from src.auth.dependency import AccessToken
+from src.auth.dependency import AccessToken, RoleChecker
 
 access = AccessToken()
 
@@ -18,7 +18,7 @@ booking_router = APIRouter(
 
 booking_service = BookingService()
 
-# dont forget role based access.
+
 @booking_router.get('/bookings/{booking_id}', response_model=BookingResponseModel)
 async def get_a_booking(
     booking_id: str,
@@ -38,9 +38,10 @@ async def get_a_booking(
 async def create_booking(
     booking_data: BookingCreateModel,
     session: AsyncSession = Depends(get_session),
-    token_detail: dict = Depends(access)
+    token_detail: dict = Depends(access),
+    role: bool = Depends(RoleChecker(['tourist']))
 ):
-    user_id = token_detail['user']['user_id']
+    user_id = token_detail['user']['id']
     booking = await booking_service.create_booking(user_id, booking_data, session)
     return booking
 
@@ -49,7 +50,9 @@ async def create_booking(
 async def delete_booking(
     booking_id: str,
     session: AsyncSession = Depends(get_session),
-    token_detail: dict = Depends(access)
+    token_detail: dict = Depends(access),
+    role: bool = Depends(RoleChecker(['tourist']))
 ):
-    booking = await booking_service.delete_booking(booking_id, session)
+    user_id = token_detail['user']['id']
+    booking = await booking_service.delete_booking(user_id, booking_id, session)
     return booking

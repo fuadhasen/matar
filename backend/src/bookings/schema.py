@@ -9,7 +9,6 @@ from datetime import datetime
 class BookingCreateModel(BaseModel):
     driver_id: str
     trip_id: str
-    # user_id: UUID = Field(foreign_key="user.id")
     number_of_passengers: int
     total_price: float
     booking_date: str
@@ -23,5 +22,6 @@ class BookingResponseModel(BookingCreateModel):
     created_at: datetime
     driver_id: UUID
     trip_id: UUID
+    user_id: UUID
     booking_date: datetime
 

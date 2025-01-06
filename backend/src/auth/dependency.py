@@ -26,7 +26,7 @@ class TokenBearer(HTTPBearer):
                                 detail="token invalid or expired"
                             )
 
-        # token revoking implemented here.
+        # token revocation will be implemented here.
 
         self.verify_token_data(token_data)
         return token_data

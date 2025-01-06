@@ -21,8 +21,7 @@ driver_router = APIRouter(
 driver_service = DriverService()
 access = AccessToken()
 
-# this endpoint is for testing purpose not needed 
-# becouse driver status can be seen only by staff
+
 @driver_router.get('/drivers', response_model=List[DriverResponseModel])
 async def get_drivers(
     session: AsyncSession = Depends(get_session),
