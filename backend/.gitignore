@@ -1,8 +1,0 @@
-__pycache__
-venv
-.env
-final
-alembic.ini
-migrations/env.py
-migrations/__pycache__
-migrations/script.py.mako
