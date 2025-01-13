@@ -1,4 +1,5 @@
 """Entry Point of the Application"""
+
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from src.db.main import init_db
@@ -16,12 +17,12 @@ async def life_span(app: FastAPI):
     yield
     print("server is finished")
 
-version = 1
 
 app = FastAPI(
-    title='Api && Integration',
-    description='FastAPI backend Application',
-    version=version
+    swagger_ui_parameters={"syntaxHighlight.theme": "obsidian"},
+    title="Matar API",
+    description="FastAPI backend Application",
+    version="1.0",
     # lifespan=life_span
 )
 
