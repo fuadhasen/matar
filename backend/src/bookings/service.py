@@ -5,7 +5,7 @@ from sqlmodel import select
 from sqlalchemy import desc
 from src.db.models import Booking
 from fastapi.exceptions import HTTPException
-from .schema import BookingCreateModel
+from .schemas import BookingCreateModel
 from uuid import UUID
 from datetime import datetime
 from src.trips.routes import trip_service

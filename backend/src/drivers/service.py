@@ -5,7 +5,7 @@ from sqlmodel import select
 from sqlalchemy import desc
 from src.db.models import Driver
 from fastapi.exceptions import HTTPException
-from .schema import DriverCreateModel
+from .schemas import DriverCreateModel
 from uuid import UUID
 from src.db.models import User
 

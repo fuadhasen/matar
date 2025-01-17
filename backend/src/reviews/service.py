@@ -5,7 +5,7 @@ from sqlmodel import select
 from sqlalchemy import desc
 from src.db.models import Review
 from fastapi.exceptions import HTTPException
-from .schema import ReviewCreateModel
+from .schemas import ReviewCreateModel
 from uuid import UUID
 from src.drivers.routes import driver_service
 

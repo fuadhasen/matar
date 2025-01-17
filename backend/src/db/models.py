@@ -1,14 +1,15 @@
 """module for Database models
 """
-from sqlmodel import SQLModel, Field
+
+import uuid
+import sqlalchemy.dialects.postgresql as pg
+from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional
 from datetime import datetime
 from enum import Enum
-from sqlalchemy import Column, ForeignKey, text
-from uuid import UUID, uuid4
-import uuid
+from sqlalchemy import Column, ForeignKey
 from uuid import UUID
-import sqlalchemy.dialects.postgresql as pg
+from typing import List
 
 
 class RoleEnum(str, Enum):
@@ -24,7 +25,8 @@ class BaseModel(SQLModel):
 
 
 class User(BaseModel, table=True):
-    full_name: str = Field(max_length=255)
+    first_name: str = Field(max_length=255)
+    last_name: str = Field(max_length=255)
     email: str = Field(max_length=255, unique=True)
     password: str
     phone_number: Optional[str] = Field(max_length=15)
@@ -35,61 +37,73 @@ class User(BaseModel, table=True):
         return f"User: {self}"
 
 
+class Airport(BaseModel, table=True):
+    airport_name: str = Field(max_length=255)
+    airport_location: str = Field(max_length=255)
+    services: List["Service"] = Relationship(back_populates="airport")
+
+    def __repr__(self):
+        return f"Airport {self}"
+
+
 class Driver(BaseModel, table=True):
     user_id: UUID = Field(
         sa_column=Column(
-            pg.UUID,
-            ForeignKey('user.id', ondelete='CASCADE'),
-            nullable=False
+            pg.UUID, ForeignKey("user.id", ondelete="CASCADE"), nullable=False
         )
     )
-    vehicle_type: str = Field(max_length=50)
-    vehicle_registration_number: str = Field(max_length=50, unique=True)
     languages_spoken: Optional[str] = Field(max_length=255)
     experience_years: Optional[int] = Field(default=0)
     verified: bool = Field(default=False)
+    services: List["Service"] = Relationship(back_populates="driver")
 
     def __repr__(self):
         return f"Driver {self}"
 
 
-class Trip(BaseModel, table=True):
-    origin: str = Field(max_length=255)
-    driver_id: UUID = Field(
-        sa_column=Column(
-            pg.UUID,
-            ForeignKey('driver.id', ondelete='CASCADE'),
-            nullable=False,
-        )
-    )
-    destination: str = Field(max_length=255)
-    trip_date: datetime
-    price: float
-    status: str = Field(default="available", max_length=20)
+class Service(BaseModel, table=True):
+    vehicle_type: str = Field(max_length=50)
+    vehicle_registration_number: str = Field(max_length=50, unique=True)
+    vehicle_model: str = Field(max_length=50)
+    vehicle_color: str = Field(max_length=50)
+    vehicle_capacity: int
+
+    driver_id: UUID = Field(foreign_key="driver.id", ondelete="CASCADE")
+    driver: Driver = Relationship(back_populates="services")
+
+    airport_id: UUID = Field(foreign_key="airport.id", ondelete="CASCADE")
+    airport: Airport = Relationship(back_populates="services")
+
+    def __repr__(self):
+        return f"Vehicle {self}"
 
 
 class Booking(BaseModel, table=True):
-    driver_id: UUID = Field(foreign_key='driver.id', ondelete='CASCADE')
-    trip_id: UUID = Field(foreign_key="trip.id", ondelete='CASCADE')
     user_id: UUID = Field(
         sa_column=Column(
             pg.UUID,
-            ForeignKey('user.id', ondelete='CASCADE'),
+            ForeignKey("user.id", ondelete="CASCADE"),
+            nullable=False,
+        )
+    )
+    service_id: UUID = Field(
+        sa_column=Column(
+            pg.UUID,
+            ForeignKey("service.id", ondelete="CASCADE"),
             nullable=False,
         )
     )
     number_of_passengers: int
-    total_price: float
     booking_date: datetime = Field(default_factory=datetime.now)
     status: str = Field(default="pendings", max_length=20)
 
 
 class Review(BaseModel, table=True):
-    driver_id: UUID = Field(foreign_key="driver.id", ondelete='CASCADE')
+    service_id: UUID = Field(foreign_key="driver.id", ondelete="CASCADE")
     user_id: UUID = Field(
         sa_column=Column(
             pg.UUID,
-            ForeignKey('user.id', ondelete='CASCADE'),
+            ForeignKey("user.id", ondelete="CASCADE"),
             nullable=False,
         )
     )
@@ -98,4 +112,3 @@ class Review(BaseModel, table=True):
 
     def __repr__(self):
         return f"Review {self}"
-
