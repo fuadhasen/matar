@@ -1,25 +1,37 @@
 """module for pydantic validation"""
+
 from pydantic import BaseModel
-from sqlmodel import Field
-from typing import Optional
+from typing import Optional, List
 from uuid import UUID
 from datetime import datetime
 
 
+class ServiceCreateModel(BaseModel):
+    driver_id: UUID
+    vehicle_model: Optional[str]
+    vehicle_type: Optional[str]
+    vehicle_color: Optional[str]
+    vehicle_plate_number: Optional[str]
+    capacity: Optional[int]
+
+
+class ServiceResponseModel(ServiceCreateModel):
+    id: UUID
+    created_at: datetime
+
+
 class DriverCreateModel(BaseModel):
-    vehicle_type: str = Field(max_length=50)
-    vehicle_registration_number: str = Field(max_length=50, unique=True)
-    languages_spoken: Optional[str] = Field(max_length=255)
-    experience_years: Optional[int] = Field(default=0)
+    user_id: UUID
+    languages_spoken: Optional[str]
+    experience_years: Optional[int]
+    verified: bool
+    services: List[ServiceCreateModel]
 
-    verified: bool = Field(default=False)
-
-    class Config:
-        orm_mode: True
 
 class DriverResponseModel(DriverCreateModel):
     id: UUID
     created_at: datetime
+
 
 class VerifyModel(BaseModel):
     verified: bool
