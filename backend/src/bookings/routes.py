@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
 from sqlmodel.ext.asyncio.session import AsyncSession
 from .service import BookingService
-from .schema import BookingCreateModel, BookingResponseModel
+from .schemas import BookingCreateModel, BookingResponseModel
 from src.db.main import get_session
 from uuid import UUID
 from typing import List
