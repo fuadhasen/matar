@@ -40,6 +40,7 @@ async def create_user(
     return user
 
 
+@auth_router.post("/driver/apply", response_model=UserResponseModel)
 @auth_router.post("/auth/login")
 async def login(
     user_credential: LoginModel, session: AsyncSession = Depends(get_session)

@@ -17,8 +17,13 @@ from src.config import Config
 def admin_register(app: FastAPI):
     router = APIRouter()
 
-    @router.post("/api/admin/register", response_model=UserResponseModel)
+    @router.post(
+        "/api/admin/register",
+        response_model=UserResponseModel,
+        tags=["Admin"],
+    )
     async def temp_route(user_data: AdminCreateModel, session=Depends(get_session)):
+        """Temporary route to register an admin"""
         app.router.routes.remove(router.routes[0])
         user_service = UserService()
         user = await user_service.create_user(user_data, session)
@@ -45,9 +50,8 @@ app = FastAPI(
 
 
 # app.include_router(auth_router)
-# app.include_router(driver_router)
+app.include_router(driver_router)
+app.include_router(airport_router)
 # app.include_router(trip_router)
 # app.include_router(booking_router)
 # app.include_router(review_router)
-
-app.include_router(airport_router)

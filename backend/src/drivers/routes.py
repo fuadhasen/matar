@@ -15,7 +15,10 @@ from src.auth.dependency import RoleChecker
 
 
 user_service = UserService()
-driver_router = APIRouter(prefix="/api")
+driver_router = APIRouter(
+    prefix="/api",
+    tags=["Drivers"],
+)
 
 driver_service = DriverService()
 access = AccessToken()
@@ -24,11 +27,8 @@ access = AccessToken()
 @driver_router.get(
     "/drivers",
     response_model=List[DriverResponseModel],
-    tags=["Drivers endpoints"],
 )
-async def get_drivers(
-    session: AsyncSession = Depends(get_session), token_detail: dict = Depends(access)
-):
+async def get_drivers(session: AsyncSession = Depends(get_session)):
     drivers = await driver_service.get_drivers(session)
     return drivers
 
@@ -36,7 +36,6 @@ async def get_drivers(
 @driver_router.post(
     "/drivers/register",
     response_model=DriverResponseModel,
-    tags=["Drivers endpoints"],
 )
 async def create_driver(
     driver_data: DriverCreateModel,
@@ -52,7 +51,6 @@ async def create_driver(
 @driver_router.get(
     "/drivers/{driver_id}/verify",
     response_model=DriverResponseModel,
-    tags=["Drivers endpoints"],
 )
 async def check_status(
     driver_id: str,
@@ -71,7 +69,6 @@ async def check_status(
 
 @driver_router.patch(
     "/drivers/{driver_id}/verify",
-    tags=["Drivers endpoints"],
 )
 async def verify_driver(
     driver_id: str,

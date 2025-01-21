@@ -10,14 +10,16 @@ from src.drivers.schemas import ServiceResponseModel
 class AirportCreateModel(BaseModel):
     airport_name: str
     airport_location: str
+    services: Optional[List[ServiceResponseModel]] = []
+    iata_code: str
 
 
 class AirportResponseModel(AirportCreateModel):
     id: UUID
     created_at: datetime
-    services: Optional[List[ServiceResponseModel]] = []
 
 
 class AirportUpdateModel(BaseModel):
-    airport_name: Optional[str]
-    airport_location: Optional[str]
+    airport_name: Optional[str] = None
+    airport_location: Optional[str] = None
+    iata_code: Optional[str] = None

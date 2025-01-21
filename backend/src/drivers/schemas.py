@@ -20,16 +20,15 @@ class ServiceResponseModel(ServiceCreateModel):
     created_at: datetime
 
 
-class DriverCreateModel(BaseModel):
-    user_id: UUID
+class DriverResponseModel(BaseModel):
+    id: UUID
+    first_name: str
+    last_name: str
+    phone_number: Optional[str]
     languages_spoken: Optional[str]
     experience_years: Optional[int]
     verified: bool
     services: List[ServiceCreateModel]
-
-
-class DriverResponseModel(DriverCreateModel):
-    id: UUID
     created_at: datetime
 
 

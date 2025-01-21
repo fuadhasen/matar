@@ -40,7 +40,10 @@ class User(BaseModel, table=True):
 class Airport(BaseModel, table=True):
     airport_name: str = Field(max_length=255)
     airport_location: str = Field(max_length=255)
-    services: List["Service"] = Relationship(back_populates="airport")
+    iata_code: str = Field(max_length=10)
+    services: List["Service"] = Relationship(
+        back_populates="airport", sa_relationship_kwargs={"lazy": "selectin"}
+    )
 
     def __repr__(self):
         return f"Airport {self}"
@@ -55,7 +58,9 @@ class Driver(BaseModel, table=True):
     languages_spoken: Optional[str] = Field(max_length=255)
     experience_years: Optional[int] = Field(default=0)
     verified: bool = Field(default=False)
-    services: List["Service"] = Relationship(back_populates="driver")
+    services: List["Service"] = Relationship(
+        back_populates="driver", sa_relationship_kwargs={"lazy": "selectin"}
+    )
 
     def __repr__(self):
         return f"Driver {self}"

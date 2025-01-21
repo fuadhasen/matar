@@ -15,14 +15,22 @@ router = APIRouter(prefix="/airports", tags=["Airports"])
 airport_service = AirportService()
 
 
-@router.get("/", response_model=List[AirportResponseModel])
+@router.get(
+    "/",
+    response_model=List[AirportResponseModel],
+    status_code=status.HTTP_200_OK,
+)
 async def get_airports(session: AsyncSession = Depends(get_session)):
     """get all airports"""
     result = await airport_service.get_airports(session)
     return result
 
 
-@router.get("/{airport_id}", response_model=AirportResponseModel)
+@router.get(
+    "/{airport_id}",
+    response_model=AirportResponseModel,
+    status_code=status.HTTP_200_OK,
+)
 async def get_an_airport(
     airport_id: UUID, session: AsyncSession = Depends(get_session)
 ):
@@ -36,16 +44,25 @@ async def get_an_airport(
     return result
 
 
-@router.post("/", response_model=AirportResponseModel)
+@router.post(
+    "/",
+    response_model=AirportResponseModel,
+    status_code=status.HTTP_201_CREATED,
+)
 async def create_airport(
-    airport_data: AirportCreateModel, session: AsyncSession = Depends(get_session), 
+    airport_data: AirportCreateModel,
+    session: AsyncSession = Depends(get_session),
 ):
     """create an airport"""
     result = await airport_service.create_airport(airport_data, session)
     return result
 
 
-@router.put("/{airport_id}", response_model=AirportResponseModel)
+@router.put(
+    "/{airport_id}",
+    response_model=AirportResponseModel,
+    status_code=status.HTTP_200_OK,
+)
 async def update_airport(
     airport_id: UUID,
     airport_data: AirportUpdateModel,
@@ -56,16 +73,23 @@ async def update_airport(
     return result
 
 
-@router.delete("/{airport_id}")
+@router.delete(
+    "/{airport_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
 async def delete_airport(
     airport_id: UUID, session: AsyncSession = Depends(get_session)
 ):
     """delete an airport"""
-    result = await airport_service.delete_airport(airport_id, session)
-    return JSONResponse(status_code=status.HTTP_204_NO_CONTENT)
+    await airport_service.delete_airport(airport_id, session)
+    return JSONResponse(content={"message": "airport deleted successfully"})
 
 
-@router.get("/search/{search_term}", response_model=List[AirportResponseModel])
+@router.get(
+    "/search/{search_term}",
+    response_model=List[AirportResponseModel],
+    status_code=status.HTTP_200_OK,
+)
 async def search_airports(
     search_term: str, session: AsyncSession = Depends(get_session)
 ):
