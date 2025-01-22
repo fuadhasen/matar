@@ -4,14 +4,13 @@ from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import HTTPException
 from sqlmodel.ext.asyncio.session import AsyncSession
-from .service import DriverService
-from .schemas import DriverCreateModel, DriverResponseModel, VerifyModel
+from .services import DriverService
+from .schemas import DriverResponseModel, VerifyModel
 from src.db.main import get_session
-from uuid import UUID
 from typing import List
-from src.auth.dependency import AccessToken
-from src.auth.service import UserService
-from src.auth.dependency import RoleChecker
+from src.users.dependency import AccessToken
+from src.users.services import UserService
+from src.users.dependency import RoleChecker
 
 
 user_service = UserService()
@@ -31,21 +30,6 @@ access = AccessToken()
 async def get_drivers(session: AsyncSession = Depends(get_session)):
     drivers = await driver_service.get_drivers(session)
     return drivers
-
-
-@driver_router.post(
-    "/drivers/register",
-    response_model=DriverResponseModel,
-)
-async def create_driver(
-    driver_data: DriverCreateModel,
-    session: AsyncSession = Depends(get_session),
-    token_detail: dict = Depends(access),
-    role: bool = Depends(RoleChecker(["driver"])),
-):
-    user_id = token_detail["user"]["id"]
-    driver = await driver_service.create_driver(user_id, driver_data, session)
-    return driver
 
 
 @driver_router.get(

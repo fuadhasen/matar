@@ -4,15 +4,13 @@ from fastapi import APIRouter, Depends
 from .schemas import UserCreateModel, UserResponseModel, LoginModel, DisableModel
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from src.db.main import get_session
-from .service import UserService
+from .services import UserService
 from fastapi import HTTPException, status
 from .utils import verify_hash, create_access_token
 from datetime import datetime, timedelta
 from src.config import Config
 from fastapi.responses import JSONResponse
 from .dependency import AccessToken, RefreshToken, get_current_user, RoleChecker
-from src.drivers.routes import driver_service
-from src.drivers.schemas import DriverCreateModel
 from typing import List
 
 

@@ -7,7 +7,7 @@ from src.db.models import Review
 from fastapi.exceptions import HTTPException
 from .schemas import ReviewCreateModel
 from uuid import UUID
-from src.drivers.routes import driver_service
+from src.services.routes import driver_service
 
 
 class ReviewService:

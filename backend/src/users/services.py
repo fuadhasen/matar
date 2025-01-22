@@ -5,9 +5,10 @@ from sqlmodel import select
 from src.db.models import User
 from fastapi import HTTPException, status
 from sqlalchemy import desc
-from .schemas import UserCreateModel
+from .schemas import UserCreateModel, DisableModel
 from .utils import generate_hash
-from .schemas import DisableModel
+
+# from .schemas import DisableModel
 
 
 class UserService:

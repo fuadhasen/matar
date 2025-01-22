@@ -32,9 +32,30 @@ class User(BaseModel, table=True):
     phone_number: Optional[str] = Field(max_length=15)
     role: RoleEnum
     is_active: bool = Field(default=True)
+    verified: bool = Field(default=False)
 
     def __repr__(self):
         return f"User: {self}"
+
+
+class Tourist(User):
+    bookings: List["Booking"] = Relationship(
+        back_populates="user", sa_relationship_kwargs={"lazy": "selectin"}
+    )
+
+    def __repr__(self):
+        return f"Tourist: {self}"
+
+
+class Driver(User):
+    services: Optional[List["Service"]] = Relationship(
+        back_populates="driver", sa_relationship_kwargs={"lazy": "selectin"}
+    )
+    languages_spoken: Optional[str] = Field(max_length=255)
+    experience_years: Optional[int] = Field(default=0)
+
+    def __repr__(self):
+        return f"Driver: {self}"
 
 
 class Airport(BaseModel, table=True):
@@ -49,32 +70,16 @@ class Airport(BaseModel, table=True):
         return f"Airport {self}"
 
 
-class Driver(BaseModel, table=True):
-    user_id: UUID = Field(
-        sa_column=Column(
-            pg.UUID, ForeignKey("user.id", ondelete="CASCADE"), nullable=False
-        )
-    )
-    languages_spoken: Optional[str] = Field(max_length=255)
-    experience_years: Optional[int] = Field(default=0)
-    verified: bool = Field(default=False)
-    services: List["Service"] = Relationship(
-        back_populates="driver", sa_relationship_kwargs={"lazy": "selectin"}
-    )
-
-    def __repr__(self):
-        return f"Driver {self}"
-
-
 class Service(BaseModel, table=True):
     vehicle_type: str = Field(max_length=50)
     vehicle_registration_number: str = Field(max_length=50, unique=True)
     vehicle_model: str = Field(max_length=50)
     vehicle_color: str = Field(max_length=50)
     vehicle_capacity: int
+    available: bool = Field(default=True)
 
-    driver_id: UUID = Field(foreign_key="driver.id", ondelete="CASCADE")
-    driver: Driver = Relationship(back_populates="services")
+    user_id: UUID = Field(foreign_key="user.id", ondelete="CASCADE")
+    user: User = Relationship(back_populates="services")
 
     airport_id: UUID = Field(foreign_key="airport.id", ondelete="CASCADE")
     airport: Airport = Relationship(back_populates="services")

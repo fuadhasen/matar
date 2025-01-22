@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import HTTPException
 from sqlmodel.ext.asyncio.session import AsyncSession
-from .service import AirportService
+from .services import AirportService
 from .schemas import AirportCreateModel, AirportUpdateModel, AirportResponseModel
 from src.db.main import get_session
 from uuid import UUID

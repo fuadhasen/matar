@@ -4,7 +4,7 @@ from fastapi import Request, Depends
 from .utils import decode_token
 from fastapi import HTTPException, status
 from sqlmodel.ext.asyncio.session import AsyncSession
-from .service import UserService
+from .services import UserService
 from typing import List
 from src.db.main import get_session
 

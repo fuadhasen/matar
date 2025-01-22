@@ -1,4 +1,5 @@
 """module for pydantic validation"""
+
 from pydantic import BaseModel
 from sqlmodel import Field
 from typing import Optional
@@ -7,15 +8,16 @@ from datetime import datetime
 
 
 class ReviewCreateModel(BaseModel):
-    driver_id: str
+    service_id: UUID
     rating: int
-    comment: Optional[str]
+    comment: Optional[str] = Field(default=None)
 
     class Config:
         orm_mode: True
 
+
 class ReviewResponseModel(ReviewCreateModel):
     id: UUID
+    service_id: UUID
+    tourist_id: UUID
     created_at: datetime
-    driver_id: UUID
-    user_id: UUID
