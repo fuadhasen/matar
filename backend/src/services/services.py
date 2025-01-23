@@ -20,9 +20,7 @@ class DriverService:
         return result
 
     async def get_a_driver(self, driver_id: str, session: AsyncSession):
-        statement = select(User).where(
-            User.id == driver_id, User.role == RoleEnum.driver
-        )
+        statement = select(User).where(User.id == driver_id)
         res = await session.exec(statement)
         result = res.first()
         return result if result is not None else None

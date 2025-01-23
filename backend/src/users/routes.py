@@ -1,110 +1,108 @@
-"""module for Authentication"""
+"""Authentication and user management routes."""
 
-from fastapi import APIRouter, Depends
-from .schemas import UserCreateModel, UserResponseModel, LoginModel, DisableModel
-from sqlalchemy.ext.asyncio.session import AsyncSession
+from fastapi import APIRouter, Depends, status
+from fastapi.exceptions import HTTPException
+from sqlmodel.ext.asyncio.session import AsyncSession
 from src.db.main import get_session
 from .services import UserService
-from fastapi import HTTPException, status
-from .utils import verify_hash, create_access_token
-from datetime import datetime, timedelta
-from src.config import Config
-from fastapi.responses import JSONResponse
-from .dependency import AccessToken, RefreshToken, get_current_user, RoleChecker
-from typing import List
+from .schemas import (
+    UserCreateModel,
+    DriverCreateModel,
+    TouristCreateModel,
+    UserResponseModel,
+    DriverResponseModel,
+    TouristResponseModel,
+    DisableModel,
+    VerifyDriverModel,
+)
+
+from .utils import get_current_user
 
 
-EXPIRY_TIME = 2
-access = AccessToken()
-refresh = RefreshToken()
-refresh = RefreshToken()
+router = APIRouter(prefix="/api", tags=["Users"])
+
 user_service = UserService()
 
-auth_router = APIRouter(prefix="/api")
 
-
-@auth_router.post("/auth/register", response_model=UserResponseModel)
-async def create_user(
-    user_data: UserCreateModel, session: AsyncSession = Depends(get_session)
+@router.post(
+    "/register",
+    status_code=status.HTTP_201_CREATED,
+    response_model=UserResponseModel,
+)
+async def register_user(
+    user_data: UserCreateModel,
+    session: AsyncSession = Depends(get_session),
 ):
-    user_email = user_data.email
-    user = await user_service.get_auser_byemail(user_email, session)
-    if user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="user is already exist"
-        )
-
-    user = await user_service.create_user(user_data, session)
+    """Register a new user."""
+    try:
+        user = await user_service.register_user(user_data, session)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     return user
 
 
-@auth_router.post("/driver/apply", response_model=UserResponseModel)
-@auth_router.post("/auth/login")
-async def login(
-    user_credential: LoginModel, session: AsyncSession = Depends(get_session)
+@router.put("/update")
+async def update_me(
+    user_data: UserCreateModel,
+    session: AsyncSession = Depends(get_session),
+    user: str = Depends(get_current_user),
 ):
-    email = user_credential.email
-    user = await user_service.get_auser_byemail(email, session)
-    if user:
-        isvalid = verify_hash(user_credential.password, user.password)
-        if isvalid:
-            access_token = create_access_token(
-                user_data={"email": user.email, "id": str(user.id), "role": user.role}
-            )
-
-            refresh_token = create_access_token(
-                user_data={"email": user.email, "id": str(user.id), "role": user.role},
-                expiry=timedelta(days=EXPIRY_TIME),
-                refresh=True,
-            )
-
-            return JSONResponse(
-                content={
-                    "message": "Login Successful",
-                    "access_token": access_token,
-                    "refresh_token": refresh_token,
-                    "user": {"id": str(user.id), "email": user.email},
-                }
-            )
+    """Update the current user."""
+    try:
+        await user_service.update_user(user, user_data, session)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    return {"message": "User updated successfully"}
 
 
-@auth_router.get("/refresh_token")
-async def refresh(token_detail: dict = Depends(refresh)):
-    expiry = token_detail["exp"]
-    if datetime.fromtimestamp(expiry) > datetime.now():
-        user_data = token_detail["user"]
-        access_token = create_access_token(user_data)
-        return access_token
-    raise HTTPException(
-        status_code=status.HTTP_400_BAD_REQUEST,
-        detail="Invalid or expired access token",
-    )
-
-
-@auth_router.get("/users/me", response_model=UserResponseModel)
-async def user(
-    user: dict = Depends(get_current_user), token_detail: dict = Depends(access)
+@router.post("/register/driver", status_code=status.HTTP_201_CREATED)
+async def register_driver(
+    driver_data: DriverCreateModel,
+    session: AsyncSession = Depends(get_session),
 ):
-    return user
+    """Register a new driver."""
+    try:
+        driver = await user_service.register_driver(driver_data, session)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    return driver
 
 
-@auth_router.get("/admin/users", response_model=List[UserResponseModel])
+@router.post("/register/tourist", status_code=status.HTTP_201_CREATED)
+async def register_tourist(
+    tourist_data: TouristCreateModel,
+    session: AsyncSession = Depends(get_session),
+):
+    """Register a new tourist."""
+    try:
+        tourist = await user_service.register_tourist(tourist_data, session)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    return tourist
+
+
+@router.put("/driver/verify", status_code=status.HTTP_200_OK)
+async def verify_driver(
+    driver_data: VerifyDriverModel,
+    session: AsyncSession = Depends(get_session),
+    user: str = Depends(get_current_user),
+):
+    """Verify a driver."""
+    try:
+        await user_service.verify_driver(driver_data, session)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    return {"message": "Driver verified successfully"}
+
+
+@router.get("/users", status_code=status.HTTP_200_OK)
 async def get_users(
     session: AsyncSession = Depends(get_session),
-    token_detail: dict = Depends(access),
-    role: bool = Depends(RoleChecker(["admin", "staff"])),
+    user: str = Depends(get_current_user),
 ):
-    users = await user_service.get_users(session)
+    """Get all users."""
+    try:
+        users = await user_service.get_users(session)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     return users
-
-
-@auth_router.patch("/admin/users/{user_id}")
-async def disable_user(
-    user_id: str,
-    user_data: DisableModel,
-    session: AsyncSession = Depends(get_session),
-    token_detail: dict = Depends(access),
-    role: bool = Depends(RoleChecker(["admin", "staff"])),
-):
-    users = await user_service.disable_user(user_id, user_data, session)
-    return JSONResponse(content={"message": f"user with this {user_id} id is disabled"})

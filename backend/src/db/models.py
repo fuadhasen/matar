@@ -2,14 +2,12 @@
 """
 
 import uuid
-import sqlalchemy.dialects.postgresql as pg
 from sqlmodel import SQLModel, Field, Relationship
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 from enum import Enum
-from sqlalchemy import Column, ForeignKey
 from uuid import UUID
-from typing import List
+from pydantic import EmailStr
 
 
 class RoleEnum(str, Enum):
@@ -27,35 +25,26 @@ class BaseModel(SQLModel):
 class User(BaseModel, table=True):
     first_name: str = Field(max_length=255)
     last_name: str = Field(max_length=255)
-    email: str = Field(max_length=255, unique=True)
+    email: EmailStr = Field(max_length=255, unique=True)
     password: str
     phone_number: Optional[str] = Field(max_length=15)
     role: RoleEnum
     is_active: bool = Field(default=True)
     verified: bool = Field(default=False)
-
-    def __repr__(self):
-        return f"User: {self}"
-
-
-class Tourist(User):
+    # Driver fields
+    services: Optional[List["Service"]] = Relationship(
+        back_populates="user", sa_relationship_kwargs={"lazy": "selectin"}
+    )
+    languages_spoken: Optional[str] = Field(max_length=255)
+    experience_years: Optional[int] = Field(default=0)
+    # end of Driver fields
+    # Tourist fields
     bookings: List["Booking"] = Relationship(
         back_populates="user", sa_relationship_kwargs={"lazy": "selectin"}
     )
 
     def __repr__(self):
-        return f"Tourist: {self}"
-
-
-class Driver(User):
-    services: Optional[List["Service"]] = Relationship(
-        back_populates="driver", sa_relationship_kwargs={"lazy": "selectin"}
-    )
-    languages_spoken: Optional[str] = Field(max_length=255)
-    experience_years: Optional[int] = Field(default=0)
-
-    def __repr__(self):
-        return f"Driver: {self}"
+        return f"User: {self}"
 
 
 class Airport(BaseModel, table=True):
@@ -84,39 +73,27 @@ class Service(BaseModel, table=True):
     airport_id: UUID = Field(foreign_key="airport.id", ondelete="CASCADE")
     airport: Airport = Relationship(back_populates="services")
 
+    bookings: List["Booking"] = Relationship(
+        back_populates="service", sa_relationship_kwargs={"lazy": "selectin"}
+    )
+
     def __repr__(self):
         return f"Vehicle {self}"
 
 
 class Booking(BaseModel, table=True):
-    user_id: UUID = Field(
-        sa_column=Column(
-            pg.UUID,
-            ForeignKey("user.id", ondelete="CASCADE"),
-            nullable=False,
-        )
-    )
-    service_id: UUID = Field(
-        sa_column=Column(
-            pg.UUID,
-            ForeignKey("service.id", ondelete="CASCADE"),
-            nullable=False,
-        )
-    )
+    tourist_id: UUID = Field(foreign_key="user.id", ondelete="CASCADE")
+    user: User = Relationship(back_populates="bookings")
+    service_id: UUID = Field(foreign_key="service.id", ondelete="CASCADE")
+    service: Service = Relationship(back_populates="bookings")
     number_of_passengers: int
     booking_date: datetime = Field(default_factory=datetime.now)
     status: str = Field(default="pendings", max_length=20)
 
 
 class Review(BaseModel, table=True):
-    service_id: UUID = Field(foreign_key="driver.id", ondelete="CASCADE")
-    user_id: UUID = Field(
-        sa_column=Column(
-            pg.UUID,
-            ForeignKey("user.id", ondelete="CASCADE"),
-            nullable=False,
-        )
-    )
+    service_id: UUID = Field(foreign_key="service.id", ondelete="CASCADE")
+    user_id: UUID = Field(foreign_key="user.id", ondelete="CASCADE")
     rating: int = Field(ge=1, le=5)
     comment: Optional[str]
 

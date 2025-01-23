@@ -5,11 +5,8 @@ from contextlib import asynccontextmanager
 from src.db.main import init_db, get_session
 from src.users.schemas import UserResponseModel
 from src.users.services import UserService
-from src.users.routes import auth_router
+from src.users.routes import router as user_router
 from src.airports.routes import router as airport_router
-from src.services.routes import driver_router
-from src.bookings.routes import booking_router
-from src.reviews.routes import review_router
 from src.config import Config
 
 
@@ -49,8 +46,8 @@ app = FastAPI(
 
 
 # app.include_router(auth_router)
-app.include_router(driver_router)
-app.include_router(airport_router)
+# app.include_router(driver_router)
+app.include_router(user_router)
 # app.include_router(trip_router)
 # app.include_router(booking_router)
 # app.include_router(review_router)

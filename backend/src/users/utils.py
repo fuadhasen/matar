@@ -2,50 +2,53 @@
 
 import jwt
 from passlib.context import CryptContext
-from datetime import timedelta, datetime
-from src.config import Config
 from fastapi import HTTPException, status
+from datetime import timedelta, datetime
+
+from src.db.models import User
+from src.config import Config
 
 
-EXPIRY_TIME = 3600
-password_context = CryptContext(schemes=["bcrypt"])
+def generate_hash(password: str) -> str:
+    """generate hash for password"""
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    return pwd_context.hash(password)
 
 
-def generate_hash(password: str):
-    """to generate the hashed password"""
-    hash = password_context.hash(password)
-    return hash
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """verify password"""
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    return pwd_context.verify(plain_password, hashed_password)
 
 
-def verify_hash(password: str, hashed_pwd: str):
-    """verify the hashed password"""
-    return password_context.verify(password, hashed_pwd)
+def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
+    """create access token"""
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.now(datetime.timezone.utc) + expires_delta
+    else:
+        expire = datetime.now(datetime.timezone.utc) + timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, Config.SECRET_KEY, algorithm=Config.ALGORITHM)
+    return encoded_jwt
 
 
-def create_access_token(
-    user_data: dict, expiry: timedelta = None, refresh: bool = False
-):
-    """access token creating method"""
-    print(f"alen: {expiry}")
-    payload = {}
-    payload["user"] = user_data
-    payload["exp"] = datetime.now() + (
-        expiry if expiry is not None else timedelta(seconds=EXPIRY_TIME)
-    )
-    payload["refresh"] = refresh
-
-    token = jwt.encode(
-        payload=payload, key=Config.SECRET_KEY, algorithm=Config.ALGORITHM
-    )
-    return token
-
-
-def decode_token(token: str):
-    """verify clients token"""
+def decode_token(token: str) -> dict:
+    """decode token"""
     try:
-        token_data = jwt.decode(
-            jwt=token, key=Config.SECRET_KEY, algorithms=Config.ALGORITHM
+        payload = jwt.decode(token, Config.SECRET_KEY, algorithms=[Config.ALGORITHM])
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired"
         )
-        return token_data
-    except jwt.PyJWTError:
-        return None
+    except jwt.InvalidTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
+        )
+    return payload
+
+
+def get_current_user(token: str) -> User:
+    """get current user"""
+    payload = decode_token(token)
+    return User(**payload)

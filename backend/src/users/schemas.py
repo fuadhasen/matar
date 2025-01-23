@@ -14,7 +14,7 @@ class UserCreateModel(BaseModel):
 
     first_name: str
     last_name: str
-    email: str
+    email: EmailStr
     password: str
     phone_number: Optional[str]
     role: RoleEnum = RoleEnum.staff
@@ -73,8 +73,22 @@ class DisableModel(BaseModel):
     is_active: bool
 
 
+class VerifyDriverModel(BaseModel):
+    """Verify driver model"""
+
+    verified: bool
+
+
 class LoginModel(BaseModel):
     """Login model"""
 
     email: EmailStr
     password: str
+
+
+class TokenModel(BaseModel):
+    """Token model"""
+
+    access_token: str
+    token_type: str
+    expires_in: int
