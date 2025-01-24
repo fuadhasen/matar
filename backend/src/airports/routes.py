@@ -9,10 +9,12 @@ from .schemas import AirportCreateModel, AirportUpdateModel, AirportResponseMode
 from src.db.main import get_session
 from uuid import UUID
 from typing import List
+from src.users.dependency import AccessToken
 
 
 router = APIRouter(prefix="/airports", tags=["Airports"])
 airport_service = AirportService()
+access_token = AccessToken()
 
 
 @router.get(
@@ -20,7 +22,9 @@ airport_service = AirportService()
     response_model=List[AirportResponseModel],
     status_code=status.HTTP_200_OK,
 )
-async def get_airports(session: AsyncSession = Depends(get_session)):
+async def get_airports(
+    session: AsyncSession = Depends(get_session),
+):
     """get all airports"""
     result = await airport_service.get_airports(session)
     return result
@@ -32,7 +36,9 @@ async def get_airports(session: AsyncSession = Depends(get_session)):
     status_code=status.HTTP_200_OK,
 )
 async def get_an_airport(
-    airport_id: UUID, session: AsyncSession = Depends(get_session)
+    airport_id: UUID,
+    session: AsyncSession = Depends(get_session),
+    user_details: dict = Depends(access_token),
 ):
     """get an airport"""
     result = await airport_service.get_an_airport(airport_id, session)

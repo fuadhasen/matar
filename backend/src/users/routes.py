@@ -15,13 +15,11 @@ from .schemas import (
     DisableModel,
     VerifyDriverModel,
 )
-
-from .utils import get_current_user
-
+from .dependency import AccessToken
 
 router = APIRouter(prefix="/api", tags=["Users"])
-
 user_service = UserService()
+access_token = AccessToken()
 
 
 @router.post(
@@ -45,11 +43,11 @@ async def register_user(
 async def update_me(
     user_data: UserCreateModel,
     session: AsyncSession = Depends(get_session),
-    user: str = Depends(get_current_user),
+    current_user: dict = Depends(access_token),
 ):
     """Update the current user."""
     try:
-        await user_service.update_user(user, user_data, session)
+        await user_service.update_user(current_user, user_data, session)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     return {"message": "User updated successfully"}
@@ -85,7 +83,7 @@ async def register_tourist(
 async def verify_driver(
     driver_data: VerifyDriverModel,
     session: AsyncSession = Depends(get_session),
-    user: str = Depends(get_current_user),
+    current_user: dict = Depends(access_token),
 ):
     """Verify a driver."""
     try:
@@ -98,7 +96,7 @@ async def verify_driver(
 @router.get("/users", status_code=status.HTTP_200_OK)
 async def get_users(
     session: AsyncSession = Depends(get_session),
-    user: str = Depends(get_current_user),
+    current_user: dict = Depends(access_token),
 ):
     """Get all users."""
     try:
