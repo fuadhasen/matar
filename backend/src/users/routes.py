@@ -10,6 +10,7 @@ from src.db.main import get_session
 from .services import UserService
 from .schemas import (
     UserCreateModel,
+    UserUpdateModel,
     DriverCreateModel,
     TouristCreateModel,
     UserResponseModel,
@@ -49,7 +50,7 @@ async def register_user(
     summary="Update the current user",
 )
 async def update_me(
-    user_data: UserCreateModel,
+    user_data: UserUpdateModel,
     session: AsyncSession = Depends(get_session),
     current_user: dict = Depends(get_current_user),
 ):
