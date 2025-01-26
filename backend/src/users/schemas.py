@@ -17,15 +17,20 @@ class UserCreateModel(BaseModel):
     email: EmailStr
     password: str
     phone_number: Optional[str]
-    role: RoleEnum = RoleEnum.staff
-    verified: bool = False
-    is_active: bool = True
+
+
+class UserUpdateModel(BaseModel):
+    """User update model"""
+
+    first_name: Optional[str]
+    last_name: Optional[str]
+    email: Optional[EmailStr]
+    phone_number: Optional[str]
 
 
 class DriverCreateModel(UserCreateModel):
     """Driver create model"""
 
-    role: RoleEnum = RoleEnum.driver
     languages_spoken: Optional[str]
     experience_years: Optional[int]
     services: Optional[List[ServiceCreateModel]] = []
@@ -34,7 +39,6 @@ class DriverCreateModel(UserCreateModel):
 class TouristCreateModel(UserCreateModel):
     """Tourist create model"""
 
-    role: RoleEnum = RoleEnum.tourist
     bookings: Optional[List[BookingResponseModel]] = []
 
 
@@ -45,7 +49,6 @@ class UserResponseModel(BaseModel):
     first_name: str
     last_name: str
     email: str
-    password: str
     phone_number: Optional[str]
     role: RoleEnum
     is_active: bool
@@ -79,16 +82,21 @@ class VerifyDriverModel(BaseModel):
     verified: bool
 
 
-class LoginModel(BaseModel):
+class CredentialsModel(BaseModel):
     """Login model"""
 
-    email: EmailStr
+    username: EmailStr
     password: str
 
 
-class TokenModel(BaseModel):
+class Token(BaseModel):
     """Token model"""
 
     access_token: str
     token_type: str
-    expires_in: int
+
+
+class DataToken(BaseModel):
+    """Data token model"""
+
+    email: Optional[EmailStr] = None

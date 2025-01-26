@@ -1,26 +1,61 @@
 """module for Drivers Resource"""
 
 from fastapi import APIRouter, Depends, status
-from fastapi.responses import JSONResponse
-from fastapi.exceptions import HTTPException
 from sqlmodel.ext.asyncio.session import AsyncSession
-from .services import DriverService
 from src.db.main import get_session
-from typing import List
-from src.users.dependency import AccessToken
 from src.users.services import UserService
-from src.users.dependency import RoleChecker
-
+from src.users.oauth import verify_is_driver
+from .services import DriverService
+from .schemas import ServiceCreateModel, ServiceResponseModel
+from uuid import UUID
 
 user_service = UserService()
-driver_router = APIRouter(
-    prefix="/api",
-    tags=["Drivers"],
+router = APIRouter(
+    prefix="/api/drivers",
+    tags=["Driver Services"],
 )
 
 driver_service = DriverService()
-access = AccessToken()
 
 
+@router.post(
+    "/services",
+    status_code=status.HTTP_201_CREATED,
+    response_model=ServiceResponseModel,
+)
+async def create_a_service(
+    service: ServiceCreateModel,
+    session: AsyncSession = Depends(get_session),
+    current_user: dict = Depends(verify_is_driver),
+):
+    """create a service"""
+    user_id = current_user.id
+    service_data = {**service.model_dump(), "user_id": user_id}
+    return await driver_service.create_a_service(session, service_data)
 
 
+@router.put(
+    "/services/{service_id}",
+    response_model=ServiceResponseModel,
+)
+async def update_a_service(
+    service_id: UUID,
+    service: ServiceCreateModel,
+    session: AsyncSession = Depends(get_session),
+    current_user: dict = Depends(verify_is_driver),
+):
+    """update a service"""
+    service_data = {**service.model_dump(exclude_none=True)}
+    return await driver_service.update_a_service(session, service_id, service_data)
+
+
+@router.delete(
+    "/services/{service_id}",
+)
+async def delete_a_service(
+    service_id: UUID,
+    session: AsyncSession = Depends(get_session),
+    current_user: dict = Depends(verify_is_driver),
+):
+    """delete a service"""
+    return await driver_service.delete_a_service(session, service_id)

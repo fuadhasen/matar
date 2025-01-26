@@ -2,7 +2,10 @@
 
 from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel.ext.asyncio.session import AsyncSession
+from pydantic import EmailStr
+from uuid import UUID
 from src.db.main import get_session
 from .services import UserService
 from .schemas import (
@@ -12,14 +15,12 @@ from .schemas import (
     UserResponseModel,
     DriverResponseModel,
     TouristResponseModel,
-    DisableModel,
-    VerifyDriverModel,
+    Token,
 )
-from .dependency import AccessToken
+from src.users.oauth import get_current_user, verify_is_staff
 
 router = APIRouter(prefix="/api", tags=["Users"])
 user_service = UserService()
-access_token = AccessToken()
 
 
 @router.post(
@@ -30,6 +31,7 @@ access_token = AccessToken()
 async def register_user(
     user_data: UserCreateModel,
     session: AsyncSession = Depends(get_session),
+    current_user: dict = Depends(verify_is_staff),
 ):
     """Register a new user."""
     try:
@@ -39,21 +41,29 @@ async def register_user(
     return user
 
 
-@router.put("/update")
+@router.put(
+    "/update",
+    status_code=status.HTTP_200_OK,
+    response_model=UserResponseModel,
+)
 async def update_me(
     user_data: UserCreateModel,
     session: AsyncSession = Depends(get_session),
-    current_user: dict = Depends(access_token),
+    current_user: dict = Depends(get_current_user),
 ):
     """Update the current user."""
     try:
-        await user_service.update_user(current_user, user_data, session)
+        user = await user_service.update_user(user_data, current_user, session)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-    return {"message": "User updated successfully"}
+    return user
 
 
-@router.post("/register/driver", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register/driver",
+    status_code=status.HTTP_201_CREATED,
+    response_model=UserResponseModel,
+)
 async def register_driver(
     driver_data: DriverCreateModel,
     session: AsyncSession = Depends(get_session),
@@ -66,7 +76,11 @@ async def register_driver(
     return driver
 
 
-@router.post("/register/tourist", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register/tourist",
+    status_code=status.HTTP_201_CREATED,
+    response_model=UserResponseModel,
+)
 async def register_tourist(
     tourist_data: TouristCreateModel,
     session: AsyncSession = Depends(get_session),
@@ -79,24 +93,40 @@ async def register_tourist(
     return tourist
 
 
-@router.put("/driver/verify", status_code=status.HTTP_200_OK)
+@router.put("/driver/{driver_email}/verify", status_code=status.HTTP_200_OK)
 async def verify_driver(
-    driver_data: VerifyDriverModel,
+    driver_email: EmailStr,
     session: AsyncSession = Depends(get_session),
-    current_user: dict = Depends(access_token),
+    current_user: dict = Depends(verify_is_staff),
 ):
     """Verify a driver."""
     try:
-        await user_service.verify_driver(driver_data, session)
+        await user_service.verify_driver(driver_email, session)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     return {"message": "Driver verified successfully"}
 
 
-@router.get("/users", status_code=status.HTTP_200_OK)
+@router.put("/user/{user_id}/disable", status_code=status.HTTP_200_OK)
+async def disable_driver(
+    user_id: UUID,
+    session: AsyncSession = Depends(get_session),
+    current_user: dict = Depends(verify_is_staff),
+):
+    """Disable a driver."""
+    try:
+        await user_service.disable_user(user_id, session)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    return {"message": "Driver disabled successfully"}
+
+
+@router.get(
+    "/users", status_code=status.HTTP_200_OK, response_model=list[UserResponseModel]
+)
 async def get_users(
     session: AsyncSession = Depends(get_session),
-    current_user: dict = Depends(access_token),
+    current_user: dict = Depends(verify_is_staff),
 ):
     """Get all users."""
     try:
@@ -104,3 +134,71 @@ async def get_users(
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     return users
+
+
+@router.get(
+    "/drivers",
+    status_code=status.HTTP_200_OK,
+    response_model=list[DriverResponseModel],
+)
+async def get_drivers(
+    session: AsyncSession = Depends(get_session),
+    current_user: dict = Depends(verify_is_staff),
+):
+    """Get all drivers."""
+    try:
+        users = await user_service.get_drivers(session)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    return users
+
+
+@router.get(
+    "/tourists",
+    status_code=status.HTTP_200_OK,
+    response_model=list[TouristResponseModel],
+)
+async def get_tourists(
+    session: AsyncSession = Depends(get_session),
+    current_user: dict = Depends(verify_is_staff),
+):
+    """Get all tourists."""
+    try:
+        users = await user_service.get_tourists(session)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    return users
+
+
+@router.post(
+    "/login",
+    status_code=status.HTTP_200_OK,
+    response_model=Token,
+)
+async def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    session: AsyncSession = Depends(get_session),
+):
+    """Login a user."""
+    try:
+        token = await user_service.login(form_data, session)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    return token
+
+
+@router.get(
+    "/me",
+    status_code=status.HTTP_200_OK,
+    response_model=UserResponseModel,
+)
+async def get_me(
+    session: AsyncSession = Depends(get_session),
+    current_user: dict = Depends(get_current_user),
+):
+    """Get the current user."""
+    try:
+        user = await user_service.get_me(current_user, session)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    return user

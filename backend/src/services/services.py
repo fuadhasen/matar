@@ -1,26 +1,67 @@
 """module for Driver Service"""
 
+from fastapi import HTTPException, status
+from uuid import UUID
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlmodel import select
-from sqlalchemy import desc
-from src.db.models import User, RoleEnum
+from sqlalchemy.exc import IntegrityError
+from src.db.models import Service
 
 
 class DriverService:
     """class for Driver services"""
 
-    async def get_drivers(self, session: AsyncSession):
-        statement = (
-            select(User)
-            .where(User.role == RoleEnum.driver)
-            .order_by(desc(User.created_at))
-        )
-        res = await session.exec(statement)
-        result = res.all()
-        return result
+    async def create_a_service(
+        self,
+        session: AsyncSession,
+        service_data: dict,
+    ):
+        """create a service"""
+        try:
+            service = Service(**service_data)
+            session.add(service)
+            await session.commit()
+            return service
+        except IntegrityError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid airport_id",
+            )
 
-    async def get_a_driver(self, driver_id: str, session: AsyncSession):
-        statement = select(User).where(User.id == driver_id)
+    async def update_a_service(
+        self,
+        session: AsyncSession,
+        service_id: UUID,
+        service_data: dict,
+    ):
+        """update a service"""
+        try:
+            statement = select(Service).where(Service.id == service_id)
+            res = await session.exec(statement)
+            service = res.first()
+            if service is None:
+                return None
+            for key, value in service_data.items():
+                setattr(service, key, value)
+            await session.commit()
+            return service
+        except IntegrityError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid airport_id",
+            )
+
+    async def delete_a_service(
+        self,
+        session: AsyncSession,
+        service_id: UUID,
+    ):
+        """delete a service"""
+        statement = select(Service).where(Service.id == service_id)
         res = await session.exec(statement)
-        result = res.first()
-        return result if result is not None else None
+        service = res.first()
+        if service is None:
+            return None
+        await session.delete(service)
+        await session.commit()
+        return service

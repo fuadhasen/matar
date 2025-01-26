@@ -4,17 +4,15 @@ from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import HTTPException
 from sqlmodel.ext.asyncio.session import AsyncSession
-from .services import AirportService
-from .schemas import AirportCreateModel, AirportUpdateModel, AirportResponseModel
-from src.db.main import get_session
 from uuid import UUID
 from typing import List
-from src.users.dependency import AccessToken
-
+from src.db.main import get_session
+from .services import AirportService
+from .schemas import AirportCreateModel, AirportUpdateModel, AirportResponseModel
+from src.users.oauth import verify_is_staff
 
 router = APIRouter(prefix="/airports", tags=["Airports"])
 airport_service = AirportService()
-access_token = AccessToken()
 
 
 @router.get(
@@ -38,7 +36,6 @@ async def get_airports(
 async def get_an_airport(
     airport_id: UUID,
     session: AsyncSession = Depends(get_session),
-    user_details: dict = Depends(access_token),
 ):
     """get an airport"""
     result = await airport_service.get_an_airport(airport_id, session)
@@ -58,6 +55,7 @@ async def get_an_airport(
 async def create_airport(
     airport_data: AirportCreateModel,
     session: AsyncSession = Depends(get_session),
+    current_user: dict = Depends(verify_is_staff),
 ):
     """create an airport"""
     result = await airport_service.create_airport(airport_data, session)
@@ -73,6 +71,7 @@ async def update_airport(
     airport_id: UUID,
     airport_data: AirportUpdateModel,
     session: AsyncSession = Depends(get_session),
+    current_user: dict = Depends(verify_is_staff),
 ):
     """update an airport"""
     result = await airport_service.update_airport(airport_id, airport_data, session)
@@ -84,7 +83,9 @@ async def update_airport(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_airport(
-    airport_id: UUID, session: AsyncSession = Depends(get_session)
+    airport_id: UUID,
+    session: AsyncSession = Depends(get_session),
+    current_user: dict = Depends(verify_is_staff),
 ):
     """delete an airport"""
     await airport_service.delete_airport(airport_id, session)
