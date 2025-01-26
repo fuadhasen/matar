@@ -51,7 +51,8 @@ class UserService:
         user = await self.get_a_user_by_email(user_data.email, session)
         if user:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="User already exists"
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="A user with this email does not exist",
             )
         user_data.password = hash_pass(user_data.password)
         new_user = User(**user_data.model_dump(), role=RoleEnum.staff)
@@ -85,6 +86,12 @@ class UserService:
         session: AsyncSession,
     ):
         """register a new driver"""
+        user = await self.get_a_user_by_email(driver_data.email, session)
+        if user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="A user with this email does not exist",
+            )
         driver_data.password = hash_pass(driver_data.password)
         new_driver = User(**driver_data.model_dump(), role=RoleEnum.driver)
         session.add(new_driver)
@@ -97,6 +104,12 @@ class UserService:
         session: AsyncSession,
     ):
         """register a new tourist"""
+        user = await self.get_a_user_by_email(tourist_data.email, session)
+        if user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="A user with this email does not exist",
+            )
         tourist_data.password = hash_pass(tourist_data.password)
         new_tourist = User(
             **tourist_data.model_dump(), verified=True, role=RoleEnum.tourist
