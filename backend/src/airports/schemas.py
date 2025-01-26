@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import Optional, List
 from uuid import UUID
 from datetime import datetime
-from src.drivers.schemas import ServiceResponseModel
+from src.services.schemas import ServiceResponseModel
 
 
 class AirportCreateModel(BaseModel):

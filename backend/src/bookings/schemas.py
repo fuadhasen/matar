@@ -1,27 +1,24 @@
 """module for pydantic validation"""
-from pydantic import BaseModel
-from sqlmodel import Field
+
 from typing import Optional
+from pydantic import BaseModel
 from uuid import UUID
 from datetime import datetime
 
 
 class BookingCreateModel(BaseModel):
-    driver_id: str
-    trip_id: str
+    service_id: UUID
     number_of_passengers: int
-    total_price: float
-    booking_date: str
-    status: str
+    booking_date: datetime
 
-    class Config:
-        orm_mode: True
+
+class BookingUpdateModel(BaseModel):
+    number_of_passengers: Optional[int] = None
+    booking_date: Optional[datetime] = None
+
 
 class BookingResponseModel(BookingCreateModel):
     id: UUID
-    created_at: datetime
-    driver_id: UUID
-    trip_id: UUID
-    user_id: UUID
+    service_id: UUID
     booking_date: datetime
-
+    created_at: datetime

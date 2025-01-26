@@ -81,10 +81,8 @@ class AirportService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Not found",
             )
-
-        session.delete(airport)
+        await session.delete(airport)
         await session.commit()
-        return None
 
     async def get_airport_by_name(self, airport_name: str, session: AsyncSession):
         """get an airport by name"""

@@ -4,12 +4,12 @@ from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import HTTPException
 from sqlmodel.ext.asyncio.session import AsyncSession
-from .service import AirportService
-from .schemas import AirportCreateModel, AirportUpdateModel, AirportResponseModel
-from src.db.main import get_session
 from uuid import UUID
 from typing import List
-
+from src.db.main import get_session
+from .services import AirportService
+from .schemas import AirportCreateModel, AirportUpdateModel, AirportResponseModel
+from src.users.oauth import verify_is_staff
 
 router = APIRouter(prefix="/airports", tags=["Airports"])
 airport_service = AirportService()
@@ -19,8 +19,11 @@ airport_service = AirportService()
     "/",
     response_model=List[AirportResponseModel],
     status_code=status.HTTP_200_OK,
+    summary="Get all airports",
 )
-async def get_airports(session: AsyncSession = Depends(get_session)):
+async def get_airports(
+    session: AsyncSession = Depends(get_session),
+):
     """get all airports"""
     result = await airport_service.get_airports(session)
     return result
@@ -30,9 +33,11 @@ async def get_airports(session: AsyncSession = Depends(get_session)):
     "/{airport_id}",
     response_model=AirportResponseModel,
     status_code=status.HTTP_200_OK,
+    summary="Get an airport",
 )
 async def get_an_airport(
-    airport_id: UUID, session: AsyncSession = Depends(get_session)
+    airport_id: UUID,
+    session: AsyncSession = Depends(get_session),
 ):
     """get an airport"""
     result = await airport_service.get_an_airport(airport_id, session)
@@ -48,10 +53,12 @@ async def get_an_airport(
     "/",
     response_model=AirportResponseModel,
     status_code=status.HTTP_201_CREATED,
+    summary="Create an airport",
 )
 async def create_airport(
     airport_data: AirportCreateModel,
     session: AsyncSession = Depends(get_session),
+    current_user: dict = Depends(verify_is_staff),
 ):
     """create an airport"""
     result = await airport_service.create_airport(airport_data, session)
@@ -62,11 +69,13 @@ async def create_airport(
     "/{airport_id}",
     response_model=AirportResponseModel,
     status_code=status.HTTP_200_OK,
+    summary="Update an airport",
 )
 async def update_airport(
     airport_id: UUID,
     airport_data: AirportUpdateModel,
     session: AsyncSession = Depends(get_session),
+    current_user: dict = Depends(verify_is_staff),
 ):
     """update an airport"""
     result = await airport_service.update_airport(airport_id, airport_data, session)
@@ -76,9 +85,12 @@ async def update_airport(
 @router.delete(
     "/{airport_id}",
     status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete an airport",
 )
 async def delete_airport(
-    airport_id: UUID, session: AsyncSession = Depends(get_session)
+    airport_id: UUID,
+    session: AsyncSession = Depends(get_session),
+    current_user: dict = Depends(verify_is_staff),
 ):
     """delete an airport"""
     await airport_service.delete_airport(airport_id, session)
@@ -89,6 +101,7 @@ async def delete_airport(
     "/search/{search_term}",
     response_model=List[AirportResponseModel],
     status_code=status.HTTP_200_OK,
+    summary="Search airports",
 )
 async def search_airports(
     search_term: str, session: AsyncSession = Depends(get_session)

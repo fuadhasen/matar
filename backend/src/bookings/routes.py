@@ -1,58 +1,74 @@
 """module for Booking Resource"""
+
 from fastapi import APIRouter, Depends, status
-from fastapi.exceptions import HTTPException
 from sqlmodel.ext.asyncio.session import AsyncSession
-from .service import BookingService
-from .schemas import BookingCreateModel, BookingResponseModel
+from .services import BookingService
+from .schemas import (
+    BookingCreateModel,
+    BookingUpdateModel,
+    BookingResponseModel,
+)
 from src.db.main import get_session
 from uuid import UUID
-from typing import List
-from src.auth.dependency import AccessToken, RoleChecker
-
-access = AccessToken()
+from src.users.oauth import verify_is_tourist
 
 
-booking_router = APIRouter(
-    prefix='/api'
-)
+router = APIRouter(prefix="/api", tags=["Bookings"])
 
 booking_service = BookingService()
 
 
-@booking_router.get('/bookings/{booking_id}', response_model=BookingResponseModel)
-async def get_a_booking(
-    booking_id: str,
+@router.post(
+    "/bookings",
+    response_model=BookingResponseModel,
+    summary="Book a service",
+    status_code=status.HTTP_201_CREATED,
+)
+async def book_a_service(
+    booking: BookingCreateModel,
     session: AsyncSession = Depends(get_session),
-    token_detail: dict = Depends(access)
+    current_user: dict = Depends(verify_is_tourist),
 ):
-    booking = await booking_service.get_a_booking(booking_id, session)
-    if not booking:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="booking Not found"
-        )
-    return booking
+    user_id = current_user.id
+    booking.booking_date = booking.booking_date.replace(tzinfo=None)
+    booking_data = {**booking.model_dump(), "user_id": user_id}
+    return await booking_service.book_a_service(
+        booking_data=booking_data,
+        session=session,
+    )
 
 
-@booking_router.post('/bookings', response_model=BookingResponseModel)
-async def create_booking(
-    booking_data: BookingCreateModel,
+@router.put(
+    "/bookings/{booking_id}",
+    response_model=BookingResponseModel,
+    summary="Update a booking",
+)
+async def update_a_service(
+    booking_id: UUID,
+    booking: BookingUpdateModel,
     session: AsyncSession = Depends(get_session),
-    token_detail: dict = Depends(access),
-    role: bool = Depends(RoleChecker(['tourist']))
+    current_user: dict = Depends(verify_is_tourist),
 ):
-    user_id = token_detail['user']['id']
-    booking = await booking_service.create_booking(user_id, booking_data, session)
-    return booking
+    if booking.booking_date:
+        booking.booking_date = booking.booking_date.replace(tzinfo=None)
+    booking_data = {**booking.model_dump(exclude_none=True)}
+    return await booking_service.update_a_service(
+        session=session,
+        booking_id=booking_id,
+        booking_data=booking_data,
+    )
 
 
-@booking_router.delete('/bookings/{booking_id}')
-async def delete_booking(
-    booking_id: str,
+@router.delete(
+    "/bookings/{booking_id}",
+    summary="Delete a booking",
+)
+async def delete_a_service(
+    booking_id: UUID,
     session: AsyncSession = Depends(get_session),
-    token_detail: dict = Depends(access),
-    role: bool = Depends(RoleChecker(['tourist']))
+    current_user: dict = Depends(verify_is_tourist),
 ):
-    user_id = token_detail['user']['id']
-    booking = await booking_service.delete_booking(user_id, booking_id, session)
-    return booking
+    return await booking_service.delete_a_service(
+        booking_id=booking_id,
+        session=session,
+    )
