@@ -27,6 +27,7 @@ user_service = UserService()
     "/register",
     status_code=status.HTTP_201_CREATED,
     response_model=UserResponseModel,
+    summary="Register a new staff user",
 )
 async def register_user(
     user_data: UserCreateModel,
@@ -45,6 +46,7 @@ async def register_user(
     "/update",
     status_code=status.HTTP_200_OK,
     response_model=UserResponseModel,
+    summary="Update the current user",
 )
 async def update_me(
     user_data: UserCreateModel,
@@ -63,6 +65,7 @@ async def update_me(
     "/register/driver",
     status_code=status.HTTP_201_CREATED,
     response_model=UserResponseModel,
+    summary="Register a new driver",
 )
 async def register_driver(
     driver_data: DriverCreateModel,
@@ -80,6 +83,7 @@ async def register_driver(
     "/register/tourist",
     status_code=status.HTTP_201_CREATED,
     response_model=UserResponseModel,
+    summary="Register a new tourist",
 )
 async def register_tourist(
     tourist_data: TouristCreateModel,
@@ -93,7 +97,11 @@ async def register_tourist(
     return tourist
 
 
-@router.put("/driver/{driver_email}/verify", status_code=status.HTTP_200_OK)
+@router.put(
+    "/driver/{driver_email}/verify",
+    status_code=status.HTTP_200_OK,
+    summary="Verify a driver",
+)
 async def verify_driver(
     driver_email: EmailStr,
     session: AsyncSession = Depends(get_session),
@@ -107,7 +115,11 @@ async def verify_driver(
     return {"message": "Driver verified successfully"}
 
 
-@router.put("/user/{user_id}/disable", status_code=status.HTTP_200_OK)
+@router.put(
+    "/user/{user_id}/disable",
+    status_code=status.HTTP_200_OK,
+    summary="Disable a user",
+)
 async def disable_driver(
     user_id: UUID,
     session: AsyncSession = Depends(get_session),
@@ -122,7 +134,10 @@ async def disable_driver(
 
 
 @router.get(
-    "/users", status_code=status.HTTP_200_OK, response_model=list[UserResponseModel]
+    "/users",
+    status_code=status.HTTP_200_OK,
+    response_model=list[UserResponseModel],
+    summary="Get all users",
 )
 async def get_users(
     session: AsyncSession = Depends(get_session),
@@ -140,6 +155,7 @@ async def get_users(
     "/drivers",
     status_code=status.HTTP_200_OK,
     response_model=list[DriverResponseModel],
+    summary="Get all drivers",
 )
 async def get_drivers(
     session: AsyncSession = Depends(get_session),
@@ -157,6 +173,7 @@ async def get_drivers(
     "/tourists",
     status_code=status.HTTP_200_OK,
     response_model=list[TouristResponseModel],
+    summary="Get all tourists",
 )
 async def get_tourists(
     session: AsyncSession = Depends(get_session),
@@ -174,6 +191,7 @@ async def get_tourists(
     "/login",
     status_code=status.HTTP_200_OK,
     response_model=Token,
+    summary="Create a token",
 )
 async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
@@ -191,6 +209,7 @@ async def login(
     "/me",
     status_code=status.HTTP_200_OK,
     response_model=UserResponseModel,
+    summary="Get the current user",
 )
 async def get_me(
     session: AsyncSession = Depends(get_session),

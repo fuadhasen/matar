@@ -88,13 +88,3 @@ class Booking(BaseModel, table=True):
     service: Service = Relationship(back_populates="bookings")
     number_of_passengers: int
     booking_date: datetime
-
-
-# class Review(BaseModel, table=True):
-#     service_id: UUID = Field(foreign_key="service.id", ondelete="CASCADE")
-#     user_id: UUID = Field(foreign_key="user.id", ondelete="CASCADE")
-#     rating: int = Field(ge=1, le=5)
-#     comment: Optional[str]
-
-#     def __repr__(self):
-#         return f"Review {self}"

@@ -19,6 +19,7 @@ airport_service = AirportService()
     "/",
     response_model=List[AirportResponseModel],
     status_code=status.HTTP_200_OK,
+    summary="Get all airports",
 )
 async def get_airports(
     session: AsyncSession = Depends(get_session),
@@ -32,6 +33,7 @@ async def get_airports(
     "/{airport_id}",
     response_model=AirportResponseModel,
     status_code=status.HTTP_200_OK,
+    summary="Get an airport",
 )
 async def get_an_airport(
     airport_id: UUID,
@@ -51,6 +53,7 @@ async def get_an_airport(
     "/",
     response_model=AirportResponseModel,
     status_code=status.HTTP_201_CREATED,
+    summary="Create an airport",
 )
 async def create_airport(
     airport_data: AirportCreateModel,
@@ -66,6 +69,7 @@ async def create_airport(
     "/{airport_id}",
     response_model=AirportResponseModel,
     status_code=status.HTTP_200_OK,
+    summary="Update an airport",
 )
 async def update_airport(
     airport_id: UUID,
@@ -81,6 +85,7 @@ async def update_airport(
 @router.delete(
     "/{airport_id}",
     status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete an airport",
 )
 async def delete_airport(
     airport_id: UUID,
@@ -96,6 +101,7 @@ async def delete_airport(
     "/search/{search_term}",
     response_model=List[AirportResponseModel],
     status_code=status.HTTP_200_OK,
+    summary="Search airports",
 )
 async def search_airports(
     search_term: str, session: AsyncSession = Depends(get_session)

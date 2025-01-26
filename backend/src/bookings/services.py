@@ -41,7 +41,11 @@ class BookingService:
             res = await session.exec(statement)
             booking = res.first()
             if booking is None:
-                return None
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Booking not found",
+                )
+
             for key, value in booking_data.items():
                 setattr(booking, key, value)
             await session.commit()
@@ -58,11 +62,21 @@ class BookingService:
         booking_id: UUID,
         session: AsyncSession,
     ):
-        statement = select(Booking).where(Booking.id == booking_id)
-        res = await session.exec(statement)
-        booking = res.first()
-        if booking is None:
-            return None
-        session.delete(booking)
-        await session.commit()
-        return booking
+        try:
+            statement = select(Booking).where(Booking.id == booking_id)
+            res = await session.exec(statement)
+            booking = res.first()
+            if booking is None:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Booking not found",
+                )
+            await session.delete(booking)
+            await session.commit()
+            return {"message": "Booking deleted successfully"}
+        except Exception as e:
+            print(e)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=str(e),
+            )

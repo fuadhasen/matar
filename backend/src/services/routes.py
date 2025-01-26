@@ -22,6 +22,7 @@ driver_service = DriverService()
     "/services",
     status_code=status.HTTP_201_CREATED,
     response_model=ServiceResponseModel,
+    summary="Create a service",
 )
 async def create_a_service(
     service: ServiceCreateModel,
@@ -37,6 +38,7 @@ async def create_a_service(
 @router.put(
     "/services/{service_id}",
     response_model=ServiceResponseModel,
+    summary="Update a service",
 )
 async def update_a_service(
     service_id: UUID,
@@ -51,6 +53,7 @@ async def update_a_service(
 
 @router.delete(
     "/services/{service_id}",
+    summary="Delete a service",
 )
 async def delete_a_service(
     service_id: UUID,
