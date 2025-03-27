@@ -15,7 +15,7 @@ engine = AsyncEngine(
     )
 )
 
-
+# coroutine
 async def init_db():
     async with engine.begin() as conn:
         from .models import User
@@ -32,4 +32,3 @@ async def get_session() -> AsyncSession:
 
     async with Session() as session:
         return session
-

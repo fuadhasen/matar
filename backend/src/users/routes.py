@@ -23,6 +23,26 @@ from src.users.oauth import get_current_user, verify_is_staff
 router = APIRouter(prefix="/api", tags=["Users"])
 user_service = UserService()
 
+# we need admin to manage resources
+# once we create one its better to disable it 
+# to prevent unauthorized access
+@router.post(
+    "/create_admin",
+    status_code=status.HTTP_201_CREATED,
+    response_model=UserResponseModel,
+    summary="Create admin"
+)
+async def create_admin(
+    user_data: UserCreateModel,
+    session: AsyncSession = Depends(get_session)
+):
+    """creat admin"""
+    try:
+        admin = await user_service.create_admin(user_data, session)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    return admin
+
 
 @router.post(
     "/register",

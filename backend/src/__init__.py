@@ -22,7 +22,7 @@ app = FastAPI(
     title=Config.APP_NAME,
     description=Config.DESC,
     version=Config.API_VERSION,
-    lifespan=life_span,
+    # lifespan=life_span,
 )
 
 

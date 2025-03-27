@@ -21,6 +21,25 @@ from .utils import hash_pass, verify_password
 class UserService:
     """class for User services"""
 
+    async def create_admin(
+        self,
+        user_data: UserCreateModel,
+        session: AsyncSession
+    ):
+        """creat admin to manage resource"""
+        admin = await self.get_a_user_by_email(user_data.email, session)
+        if admin:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="admin Already Exist"
+            )
+        user_data.password = hash_pass(user_data.password)
+        new_admin = User(**user_data.model_dump(), role=RoleEnum.admin)
+        session.add(new_admin)
+        await session.commit()
+        return new_admin
+
+
     async def login(
         self,
         form_data: OAuth2PasswordRequestForm,

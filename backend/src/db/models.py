@@ -2,13 +2,14 @@
 """
 
 import uuid
+import  sqlalchemy.dialects.postgresql as pg
 from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, List
 from datetime import datetime
 from enum import Enum
 from uuid import UUID
 from pydantic import EmailStr
-
+from sqlalchemy import Column
 
 class RoleEnum(str, Enum):
     tourist = "tourist"
@@ -44,7 +45,7 @@ class User(BaseModel, table=True):
     )
 
     def __repr__(self):
-        return f"User: {self}"
+        return f"Users: {self}"
 
 
 class Airport(BaseModel, table=True):
@@ -88,3 +89,4 @@ class Booking(BaseModel, table=True):
     service: Service = Relationship(back_populates="bookings")
     number_of_passengers: int
     booking_date: datetime
+
