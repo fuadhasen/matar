@@ -9,8 +9,6 @@ from src.db.models import (
     User, Booking, Airport, Service
 )
 from sqlmodel import SQLModel
-
-
 from alembic import context
 
 # this is the Alembic Config object, which provides
