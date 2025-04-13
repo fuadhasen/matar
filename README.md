@@ -2,6 +2,9 @@
 
 This is a RESTful API for managing tours, built with FastAPI and PostgreSQL. It includes user authentication, role-based access control, and is deployed on [Render.com](https://render.com/).
 
+## 🔗 Live Demo
+➡️ [Swagger UI](https://tour-management-api-4vfx.onrender.com/docs)
+
 ## 🔧 Features
 - JWT Authentication
 - Role-based Access (admin/user)
