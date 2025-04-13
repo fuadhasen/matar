@@ -15,6 +15,7 @@ This is a RESTful API for managing tours, built with FastAPI and PostgreSQL. It 
 - PostgreSQL
 - SQLAlchemy
 - Pydantic
+- Alembic
 - Render (Deployment)
 
 ## 📦 Setup Instructions
