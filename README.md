@@ -8,7 +8,6 @@ This is a RESTful API for managing tours, built with FastAPI and PostgreSQL. It 
 ## 🔧 Features
 - JWT Authentication
 - Role-based Access (admin/user)
-- Tour CRUD operations
 - PostgreSQL integration
 - Clean project structure
 - Deployed on Render.com
