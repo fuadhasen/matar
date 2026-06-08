@@ -1,4 +1,4 @@
-"""module for Drivers Resource"""
+"""module for Drivers Resources"""
 
 from fastapi import APIRouter, Depends, status
 from sqlmodel.ext.asyncio.session import AsyncSession
