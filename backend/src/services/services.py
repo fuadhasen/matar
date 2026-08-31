@@ -22,10 +22,11 @@ class DriverService:
             session.add(service)
             await session.commit()
             return service
-        except IntegrityError:
+        except IntegrityError as e:
+            print("DATABASE ERROR:", e)
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid airport_id",
+                detail="Some values already exist. Please check the unique fields."
             )
 
     async def update_a_service(

@@ -1,4 +1,4 @@
-"""Pydantic validation"""
+"""Pydantic validation dto - data transfer object"""
 
 from pydantic import BaseModel, EmailStr
 from uuid import UUID
@@ -20,7 +20,7 @@ class UserCreateModel(BaseModel):
 
 
 class UserUpdateModel(BaseModel):
-    """User update model"""
+    """User update models"""
 
     first_name: Optional[str]
     last_name: Optional[str]
