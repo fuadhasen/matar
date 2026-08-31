@@ -1,4 +1,4 @@
-"""module for pydantic validation"""
+"""module for pydantic validations"""
 
 from pydantic import BaseModel
 from typing import Optional
